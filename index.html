@@ -169,9 +169,9 @@
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function openMiniWindow() {
+   function openMiniWindow() {
       const width = 360;
-      const height = 280;
+      const height = 220;
       const left = window.screen.width - width - 20;
       const top = 50;
 
@@ -192,21 +192,65 @@
           <title>[${currentMode}H] Temporizador Mini</title>
           ${styles}
           <style>
-            body { padding: 8px; justify-content: center; }
-            .phases-bar, .top-controls, .btn-secondary { display: none !important; }
-            main { padding: 0; gap: 6px; }
-            .timer-display-container { padding: 8px; justify-content: center; }
-            .current-phase-badge { font-size: 12px; padding: 4px 10px; margin-top: 0; }
-            .timer-digits { font-size: clamp(40px, 15vh, 80px); margin: 6px 0; }
-            .controls { gap: 6px; }
-            .btn-main { min-width: 90px; padding: 8px 14px; font-size: 14px; }
-            .sound-toggle { padding: 6px 10px; font-size: 14px; }
+            html, body {
+              width: 100%;
+              height: 100%;
+              margin: 0;
+              padding: 0;
+              overflow: hidden;
+            }
+            body {
+              padding: 4px;
+              justify-content: center;
+            }
+            /* Anular ocultamiento del badge en ventanas muy reducidas */
+            .phases-bar, .top-controls { display: none !important; }
+            main {
+              padding: 0;
+              gap: 4px;
+              height: 100%;
+              width: 100%;
+            }
+            .timer-display-container {
+              padding: 4px;
+              justify-content: center;
+              gap: 2px;
+              flex-grow: 1;
+            }
+            .current-phase-badge {
+              display: inline-flex !important;
+              font-size: clamp(10px, 4.5vh, 13px) !important;
+              padding: 2px 8px !important;
+              margin-top: 0 !important;
+              white-space: nowrap;
+              max-width: 95%;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            .timer-digits {
+              font-size: clamp(32px, 35vh, 90px) !important;
+              margin: 0 !important;
+              line-height: 1 !important;
+            }
+            .controls {
+              gap: 4px;
+              padding-bottom: 2px;
+            }
+            .btn-main {
+              min-width: 75px;
+              padding: 4px 10px;
+              font-size: 13px;
+            }
+            .sound-toggle, .btn-secondary {
+              padding: 4px 8px;
+              font-size: 13px;
+            }
           </style>
         </head>
         <body>
           <main>
             <div class="timer-display-container" id="m-timer-box">
-              <div class="current-phase-badge">
+              <div class="current-phase-badge" id="m-phase-badge">
                 <span class="mode-indicator" id="m-mode-tag">${currentMode}H</span>
                 <span id="m-badge-icon">🧠</span>
                 <span id="m-badge-text">Activación</span>
@@ -216,10 +260,10 @@
             </div>
             <div class="controls">
               <button class="btn btn-main" id="m-btn-start" onclick="window.opener.toggleTimer()">
-                <span id="m-start-text">Iniciar</span>
+                <span id="m-start-text">${isRunning ? 'Pausar' : 'Iniciar'}</span>
               </button>
               <button class="btn btn-secondary" onclick="window.opener.resetTimer()" title="Reiniciar">🔄</button>
-              <button class="sound-toggle" id="m-sound-btn" onclick="window.opener.toggleSound()">🔔</button>
+              <button class="sound-toggle" id="m-sound-btn" onclick="window.opener.toggleSound()">${soundEnabled ? '🔔' : '🔕'}</button>
             </div>
           </main>
         </body>
