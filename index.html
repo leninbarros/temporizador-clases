@@ -90,44 +90,6 @@
     .btn-secondary { background-color: #334155; color: #f8fafc; padding: 10px 14px; }
     .btn-secondary:hover { background-color: #475569; }
     .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
-
-    /* ESTILOS PARA EL MODO MINI EN LA MISMA VENTANA */
-    body.is-mini main {
-      padding: 4px;
-      gap: 4px;
-    }
-    body.is-mini .phases-bar,
-    body.is-mini .top-controls {
-      display: none !important;
-    }
-    body.is-mini .timer-display-container {
-      padding: 4px;
-      justify-content: center;
-      gap: 2px;
-    }
-    body.is-mini .current-phase-badge {
-      font-size: clamp(10px, 4.5vh, 13px) !important;
-      padding: 2px 8px !important;
-      margin-top: 0 !important;
-    }
-    body.is-mini .timer-digits {
-      font-size: clamp(32px, 32vh, 90px) !important;
-      margin: 0 !important;
-    }
-    body.is-mini .controls {
-      gap: 6px;
-      padding-bottom: 2px;
-    }
-    body.is-mini .btn-main {
-      min-width: 80px;
-      padding: 6px 12px;
-      font-size: 13px;
-    }
-    body.is-mini .btn-secondary,
-    body.is-mini .sound-toggle {
-      padding: 6px 10px;
-      font-size: 13px;
-    }
   </style>
 </head>
 <body>
@@ -141,7 +103,7 @@
           <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1H</button>
           <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2H</button>
         </div>
-        <button class="btn-pip-mode" id="btn-toggle-mini" onclick="toggleMiniView()" title="Alternar vista compacta">🗔 Modo Compacto / Normal</button>
+        <button class="btn-pip-mode" onclick="openMiniWindow()" title="Abrir ventana emergente mini">🗔 Abrir Ventana Mini</button>
         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
       </div>
 
@@ -156,13 +118,12 @@
     </div>
 
     <div class="controls">
-      <button class="btn btn-secondary hide-on-mini" onclick="prevPhase()" title="Fase Anterior">⏮️</button>
+      <button class="btn btn-secondary" onclick="prevPhase()" title="Fase Anterior">⏮️</button>
       <button class="btn btn-main" id="btn-start" onclick="toggleTimer()">
         <span>▶️</span> <span id="start-text">Iniciar</span>
       </button>
       <button class="btn btn-secondary" onclick="resetTimer()" title="Reiniciar Fase">🔄</button>
-      <button class="btn btn-secondary hide-on-mini" onclick="nextPhase()" title="Siguiente Fase">⏭️</button>
-      <button class="btn btn-secondary" onclick="toggleMiniView()" id="btn-exit-mini" title="Restaurar Tamaño" style="display: none;">📐 Normal</button>
+      <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente Fase">⏭️</button>
       <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Activar/Desactivar Sonido">🔔</button>
     </div>
   </main>
@@ -190,46 +151,101 @@
     
     let isRunning = false;
     let soundEnabled = true;
-    let isMiniMode = false;
+    let popupWin = null;
     
     let endTime = null;
     let animFrame = null;
     let lastBeepSec = -1;
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCtx = null;
 
-    function toggleMiniView() {
-      isMiniMode = !isMiniMode;
-      document.body.classList.toggle('is-mini', isMiniMode);
-      
-      const exitBtn = document.getElementById('btn-exit-mini');
-      const hideBtns = document.querySelectorAll('.hide-on-mini');
-      
-      if (isMiniMode) {
-        exitBtn.style.display = 'inline-flex';
-        hideBtns.forEach(btn => btn.style.display = 'none');
-        window.resizeTo(360, 220); // Ajusta tamaño si el navegador lo permite
-      } else {
-        exitBtn.style.display = 'none';
-        hideBtns.forEach(btn => btn.style.display = 'inline-flex');
-        window.resizeTo(1000, 700);
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function openMiniWindow() {
+      const width = 280;
+      const height = 180;
+      const left = window.screen.width - width - 20;
+      const top = 50;
+
+      popupWin = window.open("", "TimerMiniWindow", `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`);
+
+      if (!popupWin) {
+        alert("El navegador bloqueó la ventana emergente. Habilita los pop-ups para esta página.");
+        return;
+      }
+
+      const styles = Array.from(document.querySelectorAll('style')).map(s => s.outerHTML).join('');
+
+      popupWin.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <title>[${currentMode}H] Temporizador Mini</title>
+          ${styles}
+          <style>
+            html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+            main { padding: 4px !important; gap: 4px !important; height: 100% !important; width: 100% !important; max-width: 100% !important; }
+            .phases-bar, .top-controls { display: none !important; }
+            .timer-display-container { padding: 4px 0 !important; justify-content: center !important; gap: 0 !important; border-radius: 8px !important; flex-grow: 1 !important; }
+            .current-phase-badge { display: inline-flex !important; font-size: clamp(9px, 4vh, 12px) !important; padding: 1px 4px !important; margin: 0 !important; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+            .timer-digits { font-size: clamp(26px, 32vw, 80px) !important; margin: 0 !important; padding: 0 !important; line-height: 1 !important; letter-spacing: -1px !important; }
+            .controls { gap: 4px !important; padding: 2px 0 !important; }
+            .btn-main { min-width: 60px !important; padding: 2px 6px !important; font-size: 11px !important; }
+            .sound-toggle, .btn-secondary { padding: 2px 6px !important; font-size: 11px !important; }
+          </style>
+        </head>
+        <body>
+          <main>
+            <div class="timer-display-container" id="m-timer-box">
+              <div class="current-phase-badge" id="m-phase-badge">
+                <span class="mode-indicator" id="m-mode-tag">${currentMode}H</span>
+                <span id="m-badge-icon">🧠</span>
+                <span id="m-badge-text">Activación</span>
+              </div>
+              <div class="timer-digits" id="m-timer-digits">00:00</div>
+              <div class="overall-progress-bar" id="m-overall-progress"></div>
+            </div>
+            <div class="controls">
+              <button class="btn btn-main" id="m-btn-start" onclick="window.opener.toggleTimer()">
+                <span id="m-start-text">${isRunning ? 'Pausar' : 'Iniciar'}</span>
+              </button>
+              <button class="btn btn-secondary" onclick="window.opener.resetTimer()" title="Reiniciar">🔄</button>
+              <button class="sound-toggle" id="m-sound-btn" onclick="window.opener.toggleSound()">${soundEnabled ? '🔔' : '🔕'}</button>
+            </div>
+          </main>
+        </body>
+        </html>
+      `);
+      popupWin.document.close();
       updateDisplay();
     }
 
     function playBeep(freq = 587.33, duration = 0.3, type = 'sine') {
       if (!soundEnabled) return;
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + duration);
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {
+        console.warn("Audio Context bloqueado o no soportado.", e);
+      }
     }
 
     function playPhaseEndSound() {
@@ -304,6 +320,37 @@
           card.classList.toggle('completed', idx < currentPhaseIndex);
         }
       });
+
+      if (popupWin && !popupWin.closed) {
+        const mDigits = popupWin.document.getElementById('m-timer-digits');
+        if (mDigits) mDigits.innerText = formattedTime;
+
+        const mBox = popupWin.document.getElementById('m-timer-box');
+        if (mBox) mBox.className = `timer-display-container ${phase.theme}`;
+
+        const mTag = popupWin.document.getElementById('m-mode-tag');
+        if (mTag) mTag.innerText = `${currentMode}H`;
+
+        const mIcon = popupWin.document.getElementById('m-badge-icon');
+        if (mIcon) mIcon.innerText = phase.icon;
+
+        const mText = popupWin.document.getElementById('m-badge-text');
+        if (mText) mText.innerText = phase.name;
+
+        const mProg = popupWin.document.getElementById('m-overall-progress');
+        if (mProg) mProg.style.width = `${progressPercent}%`;
+
+        const mStartText = popupWin.document.getElementById('m-start-text');
+        if (mStartText) mStartText.innerText = isRunning ? 'Pausar' : 'Iniciar';
+
+        const mBtnStart = popupWin.document.getElementById('m-btn-start');
+        if (mBtnStart) {
+          if (isRunning) mBtnStart.classList.add('paused');
+          else mBtnStart.classList.remove('paused');
+        }
+
+        popupWin.document.title = `[${currentMode}H] ${formattedTime}`;
+      }
     }
 
     function tick() {
@@ -348,7 +395,7 @@
     }
 
     function startTimer() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      getAudioContext();
       isRunning = true;
       endTime = Date.now() + (timeRemaining * 1000);
       lastBeepSec = -1;
@@ -358,6 +405,7 @@
 
       cancelAnimationFrame(animFrame);
       animFrame = requestAnimationFrame(tick);
+      updateDisplay();
     }
 
     function pauseTimer() {
@@ -366,6 +414,7 @@
 
       document.getElementById('start-text').innerText = 'Reanudar';
       document.getElementById('btn-start').classList.add('paused');
+      updateDisplay();
     }
 
     function resetTimer() {
@@ -414,6 +463,10 @@
     function toggleSound() {
       soundEnabled = !soundEnabled;
       document.getElementById('sound-btn').innerText = soundEnabled ? '🔔' : '🔕';
+      if (popupWin && !popupWin.closed) {
+        const mSoundBtn = popupWin.document.getElementById('m-sound-btn');
+        if (mSoundBtn) mSoundBtn.innerText = soundEnabled ? '🔔' : '🔕';
+      }
     }
 
     function toggleFullscreen() {
