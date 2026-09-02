@@ -45,7 +45,7 @@
     .theme-cierre.active { background-color: #581c87; border-color: #c084fc; }
     .theme-cierre .phase-title { color: #c084fc; }
 
-    /* CONTENEDOR PRINCIPAL DEL TEMPORIZADOR */
+    /* CONTENEDOR PRINCIPAL */
     .timer-display-container {
       flex-grow: 1; background-color: #1e293b; border-radius: 16px; border: 2px solid #334155;
       display: flex; flex-direction: column; align-items: center; justify-content: space-between;
@@ -78,11 +78,9 @@
     .btn-secondary { background-color: #334155; color: #f8fafc; padding: 10px 14px; }
     .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
 
-    /* ========================================================= */
-    /* REGULAR LA OCULTACIÓN AL ACHICAR CUALQUIER DIMENSIÓN     */
-    /* ========================================================= */
+    /* OCULTAR RECTÁNGULOS AL REDIMENSIONAR */
     @media (max-width: 900px), (max-height: 650px) {
-      .phases-bar { display: none !important; } /* Oculta inmediatamente los rectángulos */
+      .phases-bar { display: none !important; }
     }
 
     @media (max-width: 500px), (max-height: 450px) {
@@ -159,8 +157,52 @@
     let isRunning = false;
     let soundEnabled = true;
     let endTime = null;
-    let animFrame = null;
     let audioCtx = null;
+    let timerWorker = null;
+
+    // WEB WORKER EN SEGUNDO PLANO (INMUNIDAD AL MINIMIZAR LA VENTANA)
+    const workerCode = `
+      let interval = null;
+      self.onmessage = function(e) {
+        if (e.data === 'start') {
+          if (!interval) {
+            interval = setInterval(() => self.postMessage('tick'), 200);
+          }
+        } else if (e.data === 'stop') {
+          clearInterval(interval);
+          interval = null;
+        }
+      };
+    `;
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    timerWorker = new Worker(URL.createObjectURL(blob));
+
+    timerWorker.onmessage = function() {
+      if (!isRunning) return;
+      const now = Date.now();
+      const diffMs = endTime - now;
+      const newTimeRemaining = Math.max(0, Math.ceil(diffMs / 1000));
+
+      if (newTimeRemaining !== timeRemaining) {
+        timeRemaining = newTimeRemaining;
+        updateDisplay();
+        if (timeRemaining <= 3 && timeRemaining > 0) playBeep(440, 0.15);
+      }
+
+      if (timeRemaining <= 0) {
+        isRunning = false;
+        timerWorker.postMessage('stop');
+        playBeep(880, 0.5);
+        if (currentPhaseIndex < MODES[currentMode].length - 1) {
+          currentPhaseIndex++;
+          durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+          timeRemaining = durationSec;
+          startTimer();
+        } else {
+          document.getElementById('start-text').innerText = '¡Finalizado!';
+        }
+      }
+    };
 
     function getAudioContext() {
       if (!audioCtx) {
@@ -249,34 +291,6 @@
       });
     }
 
-    function tick() {
-      if (!isRunning) return;
-      const now = Date.now();
-      const diffMs = endTime - now;
-      const newTimeRemaining = Math.max(0, Math.ceil(diffMs / 1000));
-
-      if (newTimeRemaining !== timeRemaining) {
-        timeRemaining = newTimeRemaining;
-        updateDisplay();
-        if (timeRemaining <= 3 && timeRemaining > 0) playBeep(440, 0.15);
-      }
-
-      if (timeRemaining <= 0) {
-        isRunning = false;
-        playBeep(880, 0.5);
-        if (currentPhaseIndex < MODES[currentMode].length - 1) {
-          currentPhaseIndex++;
-          durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
-          timeRemaining = durationSec;
-          startTimer();
-        } else {
-          document.getElementById('start-text').innerText = '¡Finalizado!';
-        }
-      } else {
-        animFrame = requestAnimationFrame(tick);
-      }
-    }
-
     function toggleTimer() {
       if (isRunning) pauseTimer();
       else startTimer();
@@ -288,14 +302,13 @@
       endTime = Date.now() + (timeRemaining * 1000);
       document.getElementById('start-text').innerText = 'Pausar';
       document.getElementById('btn-start').classList.add('paused');
-      cancelAnimationFrame(animFrame);
-      animFrame = requestAnimationFrame(tick);
+      timerWorker.postMessage('start');
       updateDisplay();
     }
 
     function pauseTimer() {
       isRunning = false;
-      cancelAnimationFrame(animFrame);
+      timerWorker.postMessage('stop');
       document.getElementById('start-text').innerText = 'Reanudar';
       document.getElementById('btn-start').classList.remove('paused');
       updateDisplay();
