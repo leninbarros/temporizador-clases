@@ -1,41 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-  <button onclick="abrirModoFlotante()">Modo Ventana Pequeña</button>
-
-<script>
-  function abrirModoFlotante() {
-    // Abre la app en una mini ventana de 320x450 px
-    window.open(
-      window.location.href, 
-      'MiniApp', 
-      'width=320,height=450,resizable=yes,scrollbars=no,status=no'
-    );
-  }
-</script>
-  <!-- Botón para activar el modo mini -->
-<button id="btn-flotante" onclick="abrirModoMini()">📌 Modo Flotante / Mini</button>
-
-<script>
-  function abrirModoMini() {
-    // Si ya estamos en la ventana emergente, no hace nada
-    if (window.name === 'MiniAppWindow') return;
-
-    // Dimensiones de la ventana pequeña
-    const ancho = 320;
-    const alto = 480;
-
-    // Posiciona la ventana en la esquina superior derecha de la pantalla
-    const izquierda = window.screen.width - ancho - 20;
-    const arriba = 20;
-
-    // Abre la mini ventana sin barras de navegación ni solapas
-    window.open(
-      window.location.href,
-      'MiniAppWindow',
-      `width=${ancho},height=${alto},left=${izquierda},top=${arriba},resizable=yes,scrollbars=yes,status=no,toolbar=no,menubar=no`
-    );
-  }
-</script>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -294,6 +258,16 @@
     }
     .btn-secondary:hover { background-color: #475569; }
 
+    .btn-mini-mode {
+      background-color: #38bdf8;
+      color: #0f172a;
+      font-weight: bold;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
     .sound-toggle {
       background-color: #1e293b;
       border: 1px solid #334155;
@@ -314,6 +288,41 @@
     }
     .fullscreen-btn:hover { color: #38bdf8; }
 
+    /* REGIONAL CSS PARA MODO FLOTANTE / MINI VENTANA */
+    @media (max-width: 450px) {
+      main {
+        padding: 10px;
+        gap: 10px;
+      }
+      h1 span {
+        display: none; /* Oculta texto largo del título en mini */
+      }
+      .phases-bar {
+        display: none; /* Oculta la barra superior de fases para ahorrar espacio */
+      }
+      .current-phase-badge {
+        font-size: 14px;
+        padding: 4px 10px;
+      }
+      .timer-digits {
+        font-size: 65px;
+      }
+      .controls {
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      .btn-main {
+        min-width: 100px;
+      }
+      #btn-flotante {
+        display: none; /* Oculta el botón dentro de la ventana emergente */
+      }
+    }
+
     @media (max-width: 768px) {
       .phases-bar {
         overflow-x: auto;
@@ -332,12 +341,15 @@
 <body>
 
   <header>
-    <h1>⏱️ Temporizador Pedagógico</h1>
+    <h1>⏱️ <span>Temporizador Pedagógico</span></h1>
     
     <div style="display: flex; align-items: center; gap: 12px;">
+      <!-- BOTÓN MODO FLOTANTE -->
+      <button class="btn-mini-mode" id="btn-flotante" onclick="abrirModoMini()" title="Abrir en ventana pequeña">📌 Modo Mini</button>
+
       <div class="mode-selector">
-        <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1 Hora (45 min)</button>
-        <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2 Horas (90 min)</button>
+        <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1H</button>
+        <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2H</button>
       </div>
       <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
     </div>
@@ -361,21 +373,36 @@
 
     <!-- BOTONES DE CONTROL -->
     <div class="controls">
-      <button class="btn btn-secondary" onclick="prevPhase()" title="Fase Anterior">⏮️ Anterior</button>
+      <button class="btn btn-secondary" onclick="prevPhase()" title="Fase Anterior">⏮️</button>
       
       <button class="btn btn-main" id="btn-start" onclick="toggleTimer()">
         <span>▶️</span> <span id="start-text">Iniciar</span>
       </button>
       
-      <button class="btn btn-secondary" onclick="resetTimer()" title="Reiniciar Fase">🔄 Reiniciar</button>
+      <button class="btn btn-secondary" onclick="resetTimer()" title="Reiniciar Fase">🔄</button>
 
-      <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente Fase">Siguiente ⏭️</button>
+      <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente Fase">⏭️</button>
 
       <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Activar/Desactivar Sonido">🔔</button>
     </div>
   </main>
 
   <script>
+    function abrirModoMini() {
+      if (window.name === 'MiniAppWindow') return;
+
+      const ancho = 350;
+      const alto = 480;
+      const izquierda = window.screen.width - ancho - 20;
+      const arriba = 20;
+
+      window.open(
+        window.location.href,
+        'MiniAppWindow',
+        `width=${ancho},height=${alto},left=${izquierda},top=${arriba},resizable=yes,scrollbars=no,status=no,toolbar=no,menubar=no`
+      );
+    }
+
     const MODES = {
       1: [
         { id: 1, name: "Activación / Cálculo Mental", timeSec: 5 * 60, theme: "theme-activacion", icon: "🧠" },
