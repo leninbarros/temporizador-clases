@@ -60,7 +60,7 @@
     .mode-selector { display: flex; background-color: #0f172a; padding: 3px; border-radius: 8px; border: 1px solid #334155; gap: 3px; }
     .mode-btn { background: none; border: none; color: #94a3b8; padding: 4px 10px; font-weight: bold; font-size: 13px; border-radius: 5px; cursor: pointer; transition: all 0.2s ease; }
     .mode-btn.active { background-color: #38bdf8; color: #0f172a; }
-    .btn-pip-mode { background-color: #38bdf8; color: #0f172a; font-weight: bold; padding: 5px 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .btn-pip-mode { background-color: #38bdf8; color: #0f172a; font-weight: bold; padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .fullscreen-btn { background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; padding: 4px; }
     .fullscreen-btn:hover { color: #38bdf8; }
 
@@ -100,15 +100,15 @@
     <div class="timer-display-container" id="timer-box">
       <div class="top-controls">
         <div class="mode-selector">
-          <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1H</button>
-          <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2H</button>
+          <button class="mode-btn" id="btn-1h" onclick="selectMode(1)">1H</button>
+          <button class="mode-btn active" id="btn-2h" onclick="selectMode(2)">2H</button>
         </div>
-        <button class="btn-pip-mode" onclick="openMiniWindow()" title="Abrir ventana emergente mini">🗔 Abrir Ventana Mini</button>
+        <button class="btn-pip-mode" onclick="openMiniWindow()" title="Abrir ventana emergente mini">📌 Modo Flotante Real</button>
         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
       </div>
 
       <div class="current-phase-badge" id="phase-badge">
-        <span class="mode-indicator" id="mode-tag">1H</span>
+        <span class="mode-indicator" id="mode-tag">2H</span>
         <span id="badge-icon">🧠</span>
         <span id="badge-text">Activación / Cálculo Mental</span>
       </div>
@@ -120,7 +120,7 @@
     <div class="controls">
       <button class="btn btn-secondary" onclick="prevPhase()" title="Fase Anterior">⏮️</button>
       <button class="btn btn-main" id="btn-start" onclick="toggleTimer()">
-        <span>▶️</span> <span id="start-text">Iniciar</span>
+        <span>▶</span> <span id="start-text">Iniciar</span>
       </button>
       <button class="btn btn-secondary" onclick="resetTimer()" title="Reiniciar Fase">🔄</button>
       <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente Fase">⏭️</button>
@@ -144,9 +144,9 @@
       ]
     };
 
-    let currentMode = 1;
+    let currentMode = 2;
     let currentPhaseIndex = 0;
-    let durationSec = MODES[1][0].timeSec;
+    let durationSec = MODES[2][0].timeSec;
     let timeRemaining = durationSec;
     
     let isRunning = false;
@@ -244,7 +244,7 @@
         osc.start();
         osc.stop(ctx.currentTime + duration);
       } catch (e) {
-        console.warn("Audio Context bloqueado o no soportado.", e);
+        console.warn("Audio Context bloqueado.", e);
       }
     }
 
