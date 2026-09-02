@@ -12,6 +12,30 @@
     );
   }
 </script>
+  <!-- Botón para activar el modo mini -->
+<button id="btn-flotante" onclick="abrirModoMini()">📌 Modo Flotante / Mini</button>
+
+<script>
+  function abrirModoMini() {
+    // Si ya estamos en la ventana emergente, no hace nada
+    if (window.name === 'MiniAppWindow') return;
+
+    // Dimensiones de la ventana pequeña
+    const ancho = 320;
+    const alto = 480;
+
+    // Posiciona la ventana en la esquina superior derecha de la pantalla
+    const izquierda = window.screen.width - ancho - 20;
+    const arriba = 20;
+
+    // Abre la mini ventana sin barras de navegación ni solapas
+    window.open(
+      window.location.href,
+      'MiniAppWindow',
+      `width=${ancho},height=${alto},left=${izquierda},top=${arriba},resizable=yes,scrollbars=yes,status=no,toolbar=no,menubar=no`
+    );
+  }
+</script>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
