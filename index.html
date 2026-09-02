@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Temporizador Pedagógico - Pomodoro de Aula</title>
   
-  <!-- CONFIGURACIÓN PWA -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0f172a">
   <link rel="manifest" href="manifest.json">
@@ -15,328 +14,105 @@
   <meta name="apple-mobile-web-app-title" content="Timer Clase">
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: 100vw;
-      height: 100dvh;
-      overflow: hidden;
+      width: 100vw; height: 100dvh; overflow: hidden;
       background-color: #0f172a;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: #f8fafc;
-      user-select: none;
-      display: flex;
-      flex-direction: column;
+      color: #f8fafc; user-select: none; display: flex; flex-direction: column;
     }
-
     main {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-      gap: 10px;
-      max-width: 1200px;
-      width: 100%;
-      margin: 0 auto;
-      justify-content: space-between;
+      flex-grow: 1; display: flex; flex-direction: column; padding: 10px;
+      gap: 10px; max-width: 1200px; width: 100%; margin: 0 auto; justify-content: space-between;
     }
-
-    /* BARRA DE FASES */
-    .phases-bar {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-      flex-shrink: 0;
-    }
-
+    .phases-bar { display: flex; gap: 8px; width: 100%; flex-shrink: 0; }
     .phase-card {
-      flex: 1;
-      background-color: #1e293b;
-      border: 2px solid #334155;
-      border-radius: 10px;
-      padding: 8px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 4px;
-      opacity: 0.5;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
+      flex: 1; background-color: #1e293b; border: 2px solid #334155; border-radius: 10px;
+      padding: 8px 6px; display: flex; flex-direction: column; align-items: center;
+      text-align: center; gap: 4px; opacity: 0.5; transition: all 0.3s ease; position: relative;
+      overflow: hidden; cursor: pointer;
     }
+    .phase-card.active { opacity: 1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .phase-card.completed { opacity: 0.8; border-color: #22c55e !important; }
+    .phase-icon { font-size: 18px; }
+    .phase-title { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .phase-time { font-size: 11px; color: #94a3b8; font-weight: 600; }
 
-    .phase-card.active {
-      opacity: 1;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-
-    .phase-card.completed {
-      opacity: 0.8;
-      border-color: #22c55e !important;
-    }
-
-    .phase-icon {
-      font-size: 18px;
-    }
-
-    .phase-title {
-      font-size: 11px;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .phase-time {
-      font-size: 11px;
-      color: #94a3b8;
-      font-weight: 600;
-    }
-
-    /* COLORES ESPECÍFICOS DE FASE */
     .theme-activacion { border-color: #22c55e; }
     .theme-activacion.active { background-color: #064e3b; border-color: #4ade80; }
     .theme-activacion .phase-title { color: #4ade80; }
-
     .theme-ensenanza { border-color: #38bdf8; }
     .theme-ensenanza.active { background-color: #0c4a6e; border-color: #38bdf8; }
     .theme-ensenanza .phase-title { color: #38bdf8; }
-
     .theme-pausa { border-color: #f43f5e; }
     .theme-pausa.active { background-color: #881337; border-color: #fb7185; }
     .theme-pausa .phase-title { color: #fb7185; }
-
     .theme-cierre { border-color: #a855f7; }
     .theme-cierre.active { background-color: #581c87; border-color: #c084fc; }
     .theme-cierre .phase-title { color: #c084fc; }
 
-    /* ÁREA DEL TEMPORIZADOR CON SELECCIÓN INTEGRADA */
     .timer-display-container {
-      flex-grow: 1;
-      background-color: #1e293b;
-      border-radius: 16px;
-      border: 2px solid #334155;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      padding: 12px;
-      overflow: hidden;
-      transition: border-color 0.4s ease, background-color 0.4s ease;
+      flex-grow: 1; background-color: #1e293b; border-radius: 16px; border: 2px solid #334155;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      position: relative; padding: 12px; overflow: hidden; transition: border-color 0.4s ease, background-color 0.4s ease;
     }
-
-    .top-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      z-index: 2;
-    }
-
-    .mode-selector {
-      display: flex;
-      background-color: #0f172a;
-      padding: 3px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      gap: 3px;
-    }
-
-    .mode-btn {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      padding: 4px 10px;
-      font-weight: bold;
-      font-size: 13px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .mode-btn.active {
-      background-color: #38bdf8;
-      color: #0f172a;
-    }
-
-    .btn-mini-mode {
-      background-color: #334155;
-      color: #38bdf8;
-      font-weight: bold;
-      padding: 5px 8px;
-      border: 1px solid #475569;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-
-    .fullscreen-btn {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      font-size: 16px;
-      cursor: pointer;
-      padding: 4px;
-    }
+    .top-controls { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; z-index: 2; }
+    .mode-selector { display: flex; background-color: #0f172a; padding: 3px; border-radius: 8px; border: 1px solid #334155; gap: 3px; }
+    .mode-btn { background: none; border: none; color: #94a3b8; padding: 4px 10px; font-weight: bold; font-size: 13px; border-radius: 5px; cursor: pointer; transition: all 0.2s ease; }
+    .mode-btn.active { background-color: #38bdf8; color: #0f172a; }
+    .btn-pip-mode { background-color: #38bdf8; color: #0f172a; font-weight: bold; padding: 5px 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .fullscreen-btn { background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; padding: 4px; }
     .fullscreen-btn:hover { color: #38bdf8; }
 
     .current-phase-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      letter-spacing: 0.5px;
-      background-color: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      margin-top: 4px;
-      text-align: center;
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px;
+      font-size: 14px; font-weight: bold; letter-spacing: 0.5px; background-color: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 4px; text-align: center;
     }
-
     .timer-digits {
-      font-size: clamp(60px, 14vw, 150px);
-      font-weight: 800;
-      font-family: monospace, system-ui;
-      letter-spacing: -2px;
-      color: #ffffff;
-      text-shadow: 0 4px 16px rgba(0,0,0,0.5);
-      line-height: 1;
-      margin: auto 0;
+      font-size: clamp(60px, 14vw, 150px); font-weight: 800; font-family: monospace, system-ui;
+      letter-spacing: -2px; color: #ffffff; text-shadow: 0 4px 16px rgba(0,0,0,0.5); line-height: 1; margin: auto 0;
     }
+    .overall-progress-bar { position: absolute; bottom: 0; left: 0; height: 8px; background-color: #38bdf8; width: 0%; transition: width 0.3s linear; }
 
-    .overall-progress-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 8px;
-      background-color: #38bdf8;
-      width: 0%;
-      transition: width 0.3s linear;
-    }
-
-    /* CONTROLES DE MANDO */
-    .controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-      color: white;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn-main {
-      background-color: #22c55e;
-      min-width: 120px;
-      justify-content: center;
-      font-size: 16px;
-    }
+    .controls { display: flex; justify-content: center; align-items: center; gap: 10px; flex-shrink: 0; }
+    .btn { border: none; border-radius: 10px; padding: 10px 18px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; color: white; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+    .btn-main { background-color: #22c55e; min-width: 120px; justify-content: center; font-size: 16px; }
     .btn-main:hover { background-color: #16a34a; }
     .btn-main.paused { background-color: #eab308; }
     .btn-main.paused:hover { background-color: #ca8a04; }
-
-    .btn-secondary {
-      background-color: #334155;
-      color: #f8fafc;
-      padding: 10px 14px;
-    }
+    .btn-secondary { background-color: #334155; color: #f8fafc; padding: 10px 14px; }
     .btn-secondary:hover { background-color: #475569; }
+    .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
 
-    .sound-toggle {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      color: #38bdf8;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
+    #pip-canvas, #pip-video { display: none; }
 
-    /* VISTA COMPACTA AUTOMÁTICA AL ACHICAR LA VENTANA */
     @media (max-width: 380px), (max-height: 450px) {
-      main {
-        padding: 4px;
-        gap: 4px;
-      }
-      .phases-bar, 
-      .top-controls,
-      .btn-secondary {
-        display: none !important;
-      }
-      .timer-display-container {
-        padding: 6px;
-        justify-content: center;
-      }
-      .current-phase-badge {
-        font-size: 11px;
-        padding: 2px 8px;
-        margin-top: 0;
-      }
-      .timer-digits {
-        font-size: clamp(48px, 18vh, 100px);
-        margin: 4px 0;
-      }
-      .controls {
-        gap: 6px;
-        padding-bottom: 2px;
-      }
-      .btn-main {
-        min-width: 80px;
-        padding: 6px 12px;
-        font-size: 13px;
-      }
-      .sound-toggle {
-        padding: 6px 10px;
-        font-size: 13px;
-      }
+      main { padding: 4px; gap: 4px; }
+      .phases-bar, .top-controls, .btn-secondary { display: none !important; }
+      .timer-display-container { padding: 6px; justify-content: center; }
+      .current-phase-badge { font-size: 11px; padding: 2px 8px; margin-top: 0; }
+      .timer-digits { font-size: clamp(48px, 18vh, 100px); margin: 4px 0; }
+      .controls { gap: 6px; padding-bottom: 2px; }
+      .btn-main { min-width: 80px; padding: 6px 12px; font-size: 13px; }
+      .sound-toggle { padding: 6px 10px; font-size: 13px; }
     }
   </style>
 </head>
 <body>
 
   <main>
-    <!-- BARRA DINÁMICA DE FASES DE LA CLASE -->
     <div class="phases-bar" id="phases-bar"></div>
 
-    <!-- PANTALLA PRINCIPAL DEL TEMPORIZADOR -->
     <div class="timer-display-container" id="timer-box">
-      <!-- SELECTOR DE MODO INTEGRADO -->
       <div class="top-controls">
         <div class="mode-selector">
           <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1H</button>
           <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2H</button>
         </div>
-        <button class="btn-mini-mode" id="btn-flotante" onclick="abrirModoMini()" title="Abrir en ventana pequeña">📌 Mini</button>
+        <button class="btn-pip-mode" onclick="togglePiP()" title="Mantener sobre las demás aplicaciones">📌 Flotante Siempre Visible</button>
         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
       </div>
 
@@ -346,42 +122,24 @@
       </div>
 
       <div class="timer-digits" id="timer-digits">05:00</div>
-
       <div class="overall-progress-bar" id="overall-progress"></div>
     </div>
 
-    <!-- BOTONES DE CONTROL -->
     <div class="controls">
       <button class="btn btn-secondary" onclick="prevPhase()" title="Fase Anterior">⏮️</button>
-      
       <button class="btn btn-main" id="btn-start" onclick="toggleTimer()">
         <span>▶️</span> <span id="start-text">Iniciar</span>
       </button>
-      
       <button class="btn btn-secondary" onclick="resetTimer()" title="Reiniciar Fase">🔄</button>
-
       <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente Fase">⏭️</button>
-
       <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Activar/Desactivar Sonido">🔔</button>
     </div>
   </main>
 
+  <canvas id="pip-canvas" width="300" height="150"></canvas>
+  <video id="pip-video" autoplay muted></video>
+
   <script>
-    function abrirModoMini() {
-      if (window.name === 'MiniAppWindow') return;
-
-      const ancho = 320;
-      const alto = 380;
-      const izquierda = window.screen.width - ancho - 20;
-      const arriba = 20;
-
-      window.open(
-        window.location.href,
-        'MiniAppWindow',
-        `width=${ancho},height=${alto},left=${izquierda},top=${arriba},resizable=yes,scrollbars=no,status=no,toolbar=no,menubar=no`
-      );
-    }
-
     const MODES = {
       1: [
         { id: 1, name: "Activación / Cálculo Mental", timeSec: 5 * 60, theme: "theme-activacion", icon: "🧠" },
@@ -404,14 +162,44 @@
     let isRunning = false;
     let soundEnabled = true;
 
-    // AUDIO CON WEB AUDIO API
+    const canvas = document.getElementById('pip-canvas');
+    const ctx = canvas.getContext('2d');
+    const video = document.getElementById('pip-video');
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function updatePiPCanvas(timeStr, phaseName) {
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(phaseName.substring(0, 25), canvas.width / 2, 35);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 52px monospace';
+      ctx.fillText(timeStr, canvas.width / 2, 95);
+    }
+
+    async function togglePiP() {
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else {
+          const stream = canvas.captureStream(10);
+          video.srcObject = stream;
+          await video.play();
+          await video.requestPictureInPicture();
+        }
+      } catch (err) {
+        alert("El modo Picture-in-Picture no está soportado en este navegador o requiere interacción previa.");
+      }
+    }
 
     function playBeep(freq = 587.33, duration = 0.3, type = 'sine') {
       if (!soundEnabled) return;
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = type;
@@ -471,7 +259,6 @@
 
     function updateDisplay() {
       const phase = MODES[currentMode][currentPhaseIndex];
-      
       const mins = Math.floor(timeRemaining / 60);
       const secs = timeRemaining % 60;
       const formattedTime = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
@@ -494,6 +281,8 @@
           card.classList.toggle('completed', idx < currentPhaseIndex);
         }
       });
+
+      updatePiPCanvas(formattedTime, phase.name);
     }
 
     function toggleTimer() {
