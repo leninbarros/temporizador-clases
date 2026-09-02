@@ -3,16 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Temporizador Pedagógico - Pomodoro de Aula</title>
+  <title>Temporizador Pedagógico</title>
   
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0f172a">
-  <link rel="manifest" href="manifest.json">
-
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Timer Clase">
-
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -25,12 +17,13 @@
       flex-grow: 1; display: flex; flex-direction: column; padding: 10px;
       gap: 10px; max-width: 1200px; width: 100%; margin: 0 auto; justify-content: space-between;
     }
+
+    /* BARRA SUPERIOR DE FASES */
     .phases-bar { display: flex; gap: 8px; width: 100%; flex-shrink: 0; }
     .phase-card {
       flex: 1; background-color: #1e293b; border: 2px solid #334155; border-radius: 10px;
       padding: 8px 6px; display: flex; flex-direction: column; align-items: center;
-      text-align: center; gap: 4px; opacity: 0.5; transition: all 0.3s ease; position: relative;
-      overflow: hidden; cursor: pointer;
+      text-align: center; gap: 4px; opacity: 0.5; transition: all 0.3s ease; cursor: pointer;
     }
     .phase-card.active { opacity: 1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
     .phase-card.completed { opacity: 0.8; border-color: #22c55e !important; }
@@ -38,6 +31,7 @@
     .phase-title { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
     .phase-time { font-size: 11px; color: #94a3b8; font-weight: 600; }
 
+    /* TEMAS DE FASE */
     .theme-activacion { border-color: #22c55e; }
     .theme-activacion.active { background-color: #064e3b; border-color: #4ade80; }
     .theme-activacion .phase-title { color: #4ade80; }
@@ -51,45 +45,56 @@
     .theme-cierre.active { background-color: #581c87; border-color: #c084fc; }
     .theme-cierre .phase-title { color: #c084fc; }
 
+    /* CONTENEDOR CENTRAL DE TIMER */
     .timer-display-container {
       flex-grow: 1; background-color: #1e293b; border-radius: 16px; border: 2px solid #334155;
       display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      position: relative; padding: 12px; overflow: hidden; transition: border-color 0.4s ease, background-color 0.4s ease;
+      position: relative; padding: 12px; overflow: hidden; transition: border-color 0.4s ease;
     }
     .top-controls { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; z-index: 2; }
     .mode-selector { display: flex; background-color: #0f172a; padding: 3px; border-radius: 8px; border: 1px solid #334155; gap: 3px; }
-    .mode-btn { background: none; border: none; color: #94a3b8; padding: 4px 10px; font-weight: bold; font-size: 13px; border-radius: 5px; cursor: pointer; transition: all 0.2s ease; }
+    .mode-btn { background: none; border: none; color: #94a3b8; padding: 4px 10px; font-weight: bold; font-size: 13px; border-radius: 5px; cursor: pointer; }
     .mode-btn.active { background-color: #38bdf8; color: #0f172a; }
-    .btn-pip-mode { background-color: #38bdf8; color: #0f172a; font-weight: bold; padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .btn-pip-mode { background-color: #38bdf8; color: #0f172a; font-weight: bold; padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
     .fullscreen-btn { background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; padding: 4px; }
-    .fullscreen-btn:hover { color: #38bdf8; }
 
     .current-phase-badge {
       display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px;
-      font-size: 14px; font-weight: bold; letter-spacing: 0.5px; background-color: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 4px; text-align: center;
-      white-space: nowrap; max-width: 98%; overflow: hidden; text-overflow: ellipsis;
+      font-size: 14px; font-weight: bold; background-color: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 4px; white-space: nowrap;
     }
-    .mode-indicator {
-      background-color: #38bdf8; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 800;
-    }
+    .mode-indicator { background-color: #38bdf8; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 800; }
     .timer-digits {
-      font-size: clamp(40px, 14vw, 150px); font-weight: 800; font-family: monospace, system-ui;
-      letter-spacing: -2px; color: #ffffff; text-shadow: 0 4px 16px rgba(0,0,0,0.5); line-height: 1; margin: auto 0;
+      font-size: clamp(38px, 13vw, 140px); font-weight: 800; font-family: monospace, system-ui;
+      letter-spacing: -2px; color: #ffffff; margin: auto 0; line-height: 1;
     }
     .overall-progress-bar { position: absolute; bottom: 0; left: 0; height: 8px; background-color: #38bdf8; width: 0%; transition: width 0.3s linear; }
 
+    /* CONTROLES INFERIORES */
     .controls { display: flex; justify-content: center; align-items: center; gap: 10px; flex-shrink: 0; }
-    .btn { border: none; border-radius: 10px; padding: 10px 18px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; color: white; }
-    .btn:hover { transform: translateY(-2px); }
-    .btn:active { transform: translateY(0); }
-    .btn-main { background-color: #22c55e; min-width: 120px; justify-content: center; font-size: 16px; }
-    .btn-main:hover { background-color: #16a34a; }
+    .btn { border: none; border-radius: 10px; padding: 10px 18px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; color: white; }
+    .btn-main { background-color: #22c55e; min-width: 120px; justify-content: center; }
     .btn-main.paused { background-color: #eab308; }
-    .btn-main.paused:hover { background-color: #ca8a04; }
     .btn-secondary { background-color: #334155; color: #f8fafc; padding: 10px 14px; }
-    .btn-secondary:hover { background-color: #475569; }
     .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+
+    /* ========================================================= */
+    /* ADAPTACIÓN AUTOMÁTICA AL ACHICAR LA VENTANA (MODO MINI)   */
+    /* ========================================================= */
+    @media (max-width: 450px), (max-height: 380px) {
+      main { padding: 4px; gap: 4px; }
+      .phases-bar { display: none !important; } /* Oculta barra superior */
+      .top-controls { margin-bottom: 2px; }
+      .btn-pip-mode { display: none !important; } /* Oculta botón PIP si la ventana ya es mini */
+      .timer-display-container { padding: 6px 4px; border-radius: 10px; }
+      .current-phase-badge { font-size: 11px; padding: 3px 8px; margin-top: 0; }
+      .timer-digits { font-size: clamp(32px, 20vw, 65px); }
+      .overall-progress-bar { height: 5px; }
+      .controls { gap: 6px; }
+      .btn { padding: 6px 10px; font-size: 13px; border-radius: 6px; }
+      .btn-main { min-width: 80px; }
+      .btn-secondary, .sound-toggle { padding: 6px 10px; font-size: 13px; }
+    }
   </style>
 </head>
 <body>
@@ -103,8 +108,8 @@
           <button class="mode-btn" id="btn-1h" onclick="selectMode(1)">1H</button>
           <button class="mode-btn active" id="btn-2h" onclick="selectMode(2)">2H</button>
         </div>
-        <button class="btn-pip-mode" onclick="openMiniWindow()" title="Abrir ventana emergente mini">📌 Modo Flotante Real</button>
-        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
+        <button class="btn-pip-mode" onclick="openMiniWindow()">📌 Modo Flotante Real</button>
+        <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶</button>
       </div>
 
       <div class="current-phase-badge" id="phase-badge">
@@ -118,13 +123,13 @@
     </div>
 
     <div class="controls">
-      <button class="btn btn-secondary" onclick="prevPhase()" title="Fase Anterior">⏮️</button>
+      <button class="btn btn-secondary" onclick="prevPhase()" title="Anterior">⏮️</button>
       <button class="btn btn-main" id="btn-start" onclick="toggleTimer()">
         <span>▶</span> <span id="start-text">Iniciar</span>
       </button>
-      <button class="btn btn-secondary" onclick="resetTimer()" title="Reiniciar Fase">🔄</button>
-      <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente Fase">⏭️</button>
-      <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Activar/Desactivar Sonido">🔔</button>
+      <button class="btn btn-secondary" onclick="resetTimer()" title="Reiniciar">🔄</button>
+      <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente">⏭️</button>
+      <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Sonido">🔔</button>
     </div>
   </main>
 
@@ -151,91 +156,25 @@
     
     let isRunning = false;
     let soundEnabled = true;
-    let popupWin = null;
-    
     let endTime = null;
     let animFrame = null;
-    let lastBeepSec = -1;
-
     let audioCtx = null;
 
     function getAudioContext() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       return audioCtx;
     }
 
-    function openMiniWindow() {
-      const width = 280;
-      const height = 180;
-      const left = window.screen.width - width - 20;
-      const top = 50;
-
-      popupWin = window.open("", "TimerMiniWindow", `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`);
-
-      if (!popupWin) {
-        alert("El navegador bloqueó la ventana emergente. Habilita los pop-ups para esta página.");
-        return;
-      }
-
-      const styles = Array.from(document.querySelectorAll('style')).map(s => s.outerHTML).join('');
-
-      popupWin.document.write(`
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-          <meta charset="UTF-8">
-          <title>[${currentMode}H] Temporizador Mini</title>
-          ${styles}
-          <style>
-            html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
-            main { padding: 4px !important; gap: 4px !important; height: 100% !important; width: 100% !important; max-width: 100% !important; }
-            .phases-bar, .top-controls { display: none !important; }
-            .timer-display-container { padding: 4px 0 !important; justify-content: center !important; gap: 0 !important; border-radius: 8px !important; flex-grow: 1 !important; }
-            .current-phase-badge { display: inline-flex !important; font-size: clamp(9px, 4vh, 12px) !important; padding: 1px 4px !important; margin: 0 !important; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-            .timer-digits { font-size: clamp(26px, 32vw, 80px) !important; margin: 0 !important; padding: 0 !important; line-height: 1 !important; letter-spacing: -1px !important; }
-            .controls { gap: 4px !important; padding: 2px 0 !important; }
-            .btn-main { min-width: 60px !important; padding: 2px 6px !important; font-size: 11px !important; }
-            .sound-toggle, .btn-secondary { padding: 2px 6px !important; font-size: 11px !important; }
-          </style>
-        </head>
-        <body>
-          <main>
-            <div class="timer-display-container" id="m-timer-box">
-              <div class="current-phase-badge" id="m-phase-badge">
-                <span class="mode-indicator" id="m-mode-tag">${currentMode}H</span>
-                <span id="m-badge-icon">🧠</span>
-                <span id="m-badge-text">Activación</span>
-              </div>
-              <div class="timer-digits" id="m-timer-digits">00:00</div>
-              <div class="overall-progress-bar" id="m-overall-progress"></div>
-            </div>
-            <div class="controls">
-              <button class="btn btn-main" id="m-btn-start" onclick="window.opener.toggleTimer()">
-                <span id="m-start-text">${isRunning ? 'Pausar' : 'Iniciar'}</span>
-              </button>
-              <button class="btn btn-secondary" onclick="window.opener.resetTimer()" title="Reiniciar">🔄</button>
-              <button class="sound-toggle" id="m-sound-btn" onclick="window.opener.toggleSound()">${soundEnabled ? '🔔' : '🔕'}</button>
-            </div>
-          </main>
-        </body>
-        </html>
-      `);
-      popupWin.document.close();
-      updateDisplay();
-    }
-
-    function playBeep(freq = 587.33, duration = 0.3, type = 'sine') {
+    function playBeep(freq = 587.33, duration = 0.3) {
       if (!soundEnabled) return;
       try {
         const ctx = getAudioContext();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = type;
+        osc.type = 'sine';
         osc.frequency.value = freq;
         gain.gain.setValueAtTime(0.1, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
@@ -243,17 +182,7 @@
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + duration);
-      } catch (e) {
-        console.warn("Audio Context bloqueado.", e);
-      }
-    }
-
-    function playPhaseEndSound() {
-      if (!soundEnabled) return;
-      const notes = [587.33, 739.99, 880.00, 1174.66];
-      notes.forEach((freq, i) => {
-        setTimeout(() => playBeep(freq, 0.4, 'triangle'), i * 150);
-      });
+      } catch (e) {}
     }
 
     function init() {
@@ -276,15 +205,12 @@
     function renderPhasesBar() {
       const phasesBar = document.getElementById('phases-bar');
       phasesBar.innerHTML = '';
-      const phases = MODES[currentMode];
-
-      phases.forEach((phase, index) => {
+      MODES[currentMode].forEach((phase, index) => {
         const minutes = Math.floor(phase.timeSec / 60);
         const card = document.createElement('div');
         card.className = `phase-card ${phase.theme} ${index === currentPhaseIndex ? 'active' : ''}`;
         card.id = `phase-card-${index}`;
         card.onclick = () => jumpToPhase(index);
-
         card.innerHTML = `
           <div class="phase-icon">${phase.icon}</div>
           <div class="phase-title">${phase.name}</div>
@@ -295,191 +221,3 @@
     }
 
     function updateDisplay() {
-      const phase = MODES[currentMode][currentPhaseIndex];
-      const mins = Math.floor(timeRemaining / 60);
-      const secs = timeRemaining % 60;
-      const formattedTime = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-
-      document.getElementById('timer-digits').innerText = formattedTime;
-      document.title = `[${currentMode}H] ${formattedTime} - ${phase.name}`;
-
-      document.getElementById('mode-tag').innerText = `${currentMode}H`;
-      document.getElementById('badge-icon').innerText = phase.icon;
-      document.getElementById('badge-text').innerText = phase.name;
-
-      const timerBox = document.getElementById('timer-box');
-      timerBox.className = `timer-display-container ${phase.theme}`;
-
-      const progressPercent = ((durationSec - timeRemaining) / durationSec) * 100;
-      document.getElementById('overall-progress').style.width = `${progressPercent}%`;
-
-      MODES[currentMode].forEach((_, idx) => {
-        const card = document.getElementById(`phase-card-${idx}`);
-        if (card) {
-          card.classList.toggle('active', idx === currentPhaseIndex);
-          card.classList.toggle('completed', idx < currentPhaseIndex);
-        }
-      });
-
-      if (popupWin && !popupWin.closed) {
-        const mDigits = popupWin.document.getElementById('m-timer-digits');
-        if (mDigits) mDigits.innerText = formattedTime;
-
-        const mBox = popupWin.document.getElementById('m-timer-box');
-        if (mBox) mBox.className = `timer-display-container ${phase.theme}`;
-
-        const mTag = popupWin.document.getElementById('m-mode-tag');
-        if (mTag) mTag.innerText = `${currentMode}H`;
-
-        const mIcon = popupWin.document.getElementById('m-badge-icon');
-        if (mIcon) mIcon.innerText = phase.icon;
-
-        const mText = popupWin.document.getElementById('m-badge-text');
-        if (mText) mText.innerText = phase.name;
-
-        const mProg = popupWin.document.getElementById('m-overall-progress');
-        if (mProg) mProg.style.width = `${progressPercent}%`;
-
-        const mStartText = popupWin.document.getElementById('m-start-text');
-        if (mStartText) mStartText.innerText = isRunning ? 'Pausar' : 'Iniciar';
-
-        const mBtnStart = popupWin.document.getElementById('m-btn-start');
-        if (mBtnStart) {
-          if (isRunning) mBtnStart.classList.add('paused');
-          else mBtnStart.classList.remove('paused');
-        }
-
-        popupWin.document.title = `[${currentMode}H] ${formattedTime}`;
-      }
-    }
-
-    function tick() {
-      if (!isRunning) return;
-
-      const now = Date.now();
-      const diffMs = endTime - now;
-      const newTimeRemaining = Math.max(0, Math.ceil(diffMs / 1000));
-
-      if (newTimeRemaining !== timeRemaining) {
-        timeRemaining = newTimeRemaining;
-        updateDisplay();
-
-        if (timeRemaining <= 3 && timeRemaining > 0 && lastBeepSec !== timeRemaining) {
-          lastBeepSec = timeRemaining;
-          playBeep(440, 0.15);
-        }
-      }
-
-      if (timeRemaining <= 0) {
-        isRunning = false;
-        playPhaseEndSound();
-        if (currentPhaseIndex < MODES[currentMode].length - 1) {
-          currentPhaseIndex++;
-          durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
-          timeRemaining = durationSec;
-          startTimer();
-        } else {
-          document.getElementById('start-text').innerText = '¡Finalizado!';
-        }
-      } else {
-        animFrame = requestAnimationFrame(tick);
-      }
-    }
-
-    function toggleTimer() {
-      if (isRunning) {
-        pauseTimer();
-      } else {
-        startTimer();
-      }
-    }
-
-    function startTimer() {
-      getAudioContext();
-      isRunning = true;
-      endTime = Date.now() + (timeRemaining * 1000);
-      lastBeepSec = -1;
-
-      document.getElementById('start-text').innerText = 'Pausar';
-      document.getElementById('btn-start').classList.remove('paused');
-
-      cancelAnimationFrame(animFrame);
-      animFrame = requestAnimationFrame(tick);
-      updateDisplay();
-    }
-
-    function pauseTimer() {
-      isRunning = false;
-      cancelAnimationFrame(animFrame);
-
-      document.getElementById('start-text').innerText = 'Reanudar';
-      document.getElementById('btn-start').classList.add('paused');
-      updateDisplay();
-    }
-
-    function resetTimer() {
-      if (isRunning) pauseTimer();
-      durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
-      timeRemaining = durationSec;
-      document.getElementById('start-text').innerText = 'Iniciar';
-      document.getElementById('btn-start').classList.remove('paused');
-      updateDisplay();
-    }
-
-    function nextPhase() {
-      if (currentPhaseIndex < MODES[currentMode].length - 1) {
-        if (isRunning) pauseTimer();
-        currentPhaseIndex++;
-        durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
-        timeRemaining = durationSec;
-        document.getElementById('start-text').innerText = 'Iniciar';
-        document.getElementById('btn-start').classList.remove('paused');
-        updateDisplay();
-      }
-    }
-
-    function prevPhase() {
-      if (currentPhaseIndex > 0) {
-        if (isRunning) pauseTimer();
-        currentPhaseIndex--;
-        durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
-        timeRemaining = durationSec;
-        document.getElementById('start-text').innerText = 'Iniciar';
-        document.getElementById('btn-start').classList.remove('paused');
-        updateDisplay();
-      }
-    }
-
-    function jumpToPhase(index) {
-      if (isRunning) pauseTimer();
-      currentPhaseIndex = index;
-      durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
-      timeRemaining = durationSec;
-      document.getElementById('start-text').innerText = 'Iniciar';
-      document.getElementById('btn-start').classList.remove('paused');
-      updateDisplay();
-    }
-
-    function toggleSound() {
-      soundEnabled = !soundEnabled;
-      document.getElementById('sound-btn').innerText = soundEnabled ? '🔔' : '🔕';
-      if (popupWin && !popupWin.closed) {
-        const mSoundBtn = popupWin.document.getElementById('m-sound-btn');
-        if (mSoundBtn) mSoundBtn.innerText = soundEnabled ? '🔔' : '🔕';
-      }
-    }
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
-    }
-
-    window.onload = init;
-  </script>
-</body>
-</html>
