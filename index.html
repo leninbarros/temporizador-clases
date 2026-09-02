@@ -90,8 +90,6 @@
     .btn-secondary:hover { background-color: #475569; }
     .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
 
-    #pip-canvas, #pip-video { display: none; }
-
     @media (max-width: 380px), (max-height: 450px) {
       main { padding: 4px; gap: 4px; }
       .phases-bar, .top-controls, .btn-secondary { display: none !important; }
@@ -106,7 +104,7 @@
 </head>
 <body>
 
-  <main>
+  <main id="app-main">
     <div class="phases-bar" id="phases-bar"></div>
 
     <div class="timer-display-container" id="timer-box">
@@ -115,7 +113,7 @@
           <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1H</button>
           <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2H</button>
         </div>
-        <button class="btn-pip-mode" onclick="togglePiP()" title="Mantener sobre las demás aplicaciones">📌 Flotante Siempre Visible</button>
+        <button class="btn-pip-mode" onclick="toggleDocPiP()" title="Mantener sobre las demás aplicaciones">📌 Modo Flotante Real</button>
         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
       </div>
 
@@ -140,9 +138,6 @@
     </div>
   </main>
 
-  <canvas id="pip-canvas" width="300" height="150"></canvas>
-  <video id="pip-video" autoplay muted></video>
-
   <script>
     const MODES = {
       1: [
@@ -165,39 +160,51 @@
     let timerInterval = null;
     let isRunning = false;
     let soundEnabled = true;
-
-    const canvas = document.getElementById('pip-canvas');
-    const ctx = canvas.getContext('2d');
-    const video = document.getElementById('pip-video');
+    let pipWindow = null;
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function updatePiPCanvas(timeStr, phaseName) {
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    async function toggleDocPiP() {
+      if (!('documentPictureInPicture' in window)) {
+        alert("Tu navegador no soporta el modo flotante de documentos. Usa Google Chrome o Microsoft Edge actualizados.");
+        return;
+      }
 
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`[${currentMode}H] ${phaseName.substring(0, 20)}`, canvas.width / 2, 35);
+      if (pipWindow) {
+        pipWindow.close();
+        return;
+      }
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 52px monospace';
-      ctx.fillText(timeStr, canvas.width / 2, 95);
-    }
-
-    async function togglePiP() {
       try {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        } else {
-          const stream = canvas.captureStream(10);
-          video.srcObject = stream;
-          await video.play();
-          await video.requestPictureInPicture();
-        }
+        pipWindow = await window.documentPictureInPicture.requestWindow({
+          width: 320,
+          height: 220,
+        });
+
+        [...document.styleSheets].forEach((styleSheet) => {
+          try {
+            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+            const style = document.createElement('style');
+            style.textContent = cssRules;
+            pipWindow.document.head.appendChild(style);
+          } catch (e) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = styleSheet.type;
+            link.href = styleSheet.href;
+            pipWindow.document.head.appendChild(link);
+          }
+        });
+
+        const mainElement = document.getElementById('app-main');
+        pipWindow.document.body.appendChild(mainElement);
+
+        pipWindow.addEventListener('unload', () => {
+          document.body.appendChild(mainElement);
+          pipWindow = null;
+        });
       } catch (err) {
-        alert("El modo Picture-in-Picture no está soportado en este navegador.");
+        console.error("Error al abrir ventana flotante:", err);
       }
     }
 
@@ -286,8 +293,6 @@
           card.classList.toggle('completed', idx < currentPhaseIndex);
         }
       });
-
-      updatePiPCanvas(formattedTime, phase.name);
     }
 
     function toggleTimer() {
