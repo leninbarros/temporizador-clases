@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Temporizador Pedagógico - Pomodoro de Aula</title>
+  <title>Temporizador Pedagógico</title>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -79,13 +79,13 @@
     .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
 
     /* ========================================================= */
-    /* OCULTAR RECTÁNGULOS AL ACHICAR ANCHO O ALTO DE VENTANA    */
+    /* REGULAR LA OCULTACIÓN AL ACHICAR CUALQUIER DIMENSIÓN     */
     /* ========================================================= */
-    @media (max-width: 700px), (max-height: 500px) {
-      .phases-bar { display: none !important; } /* Oculta únicamente los rectángulos superiores */
+    @media (max-width: 900px), (max-height: 650px) {
+      .phases-bar { display: none !important; } /* Oculta inmediatamente los rectángulos */
     }
 
-    @media (max-width: 450px), (max-height: 380px) {
+    @media (max-width: 500px), (max-height: 450px) {
       main { padding: 4px; gap: 4px; }
       .top-controls { margin-bottom: 2px; }
       .timer-display-container { padding: 6px 4px; border-radius: 10px; }
