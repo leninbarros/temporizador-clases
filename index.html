@@ -282,47 +282,42 @@
       font-size: 16px;
     }
 
-    /* VISTA MINI / VENTANA PEQUEÑA */
-    @media (max-width: 400px) {
+    /* VISTA COMPACTA AUTOMÁTICA AL ACHICAR LA VENTANA */
+    @media (max-width: 380px), (max-height: 450px) {
       main {
-        padding: 6px;
-        gap: 6px;
-      }
-      .phases-bar {
-        display: none;
-      }
-      .timer-display-container {
-        padding: 8px;
-      }
-      .current-phase-badge {
-        font-size: 12px;
-        padding: 4px 8px;
-      }
-      .timer-digits {
-        font-size: 56px;
-      }
-      .controls {
+        padding: 4px;
         gap: 4px;
       }
-      .btn {
-        padding: 8px 10px;
-        font-size: 13px;
+      .phases-bar, 
+      .top-controls,
+      .btn-secondary {
+        display: none !important;
+      }
+      .timer-display-container {
+        padding: 6px;
+        justify-content: center;
+      }
+      .current-phase-badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        margin-top: 0;
+      }
+      .timer-digits {
+        font-size: clamp(48px, 18vh, 100px);
+        margin: 4px 0;
+      }
+      .controls {
+        gap: 6px;
+        padding-bottom: 2px;
       }
       .btn-main {
-        min-width: 90px;
+        min-width: 80px;
+        padding: 6px 12px;
+        font-size: 13px;
       }
-      #btn-flotante {
-        display: none;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .phases-bar {
-        overflow-x: auto;
-        padding-bottom: 3px;
-      }
-      .phase-card {
-        min-width: 95px;
+      .sound-toggle {
+        padding: 6px 10px;
+        font-size: 13px;
       }
     }
   </style>
@@ -376,7 +371,7 @@
       if (window.name === 'MiniAppWindow') return;
 
       const ancho = 320;
-      const alto = 420;
+      const alto = 380;
       const izquierda = window.screen.width - ancho - 20;
       const arriba = 20;
 
