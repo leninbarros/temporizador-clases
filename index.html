@@ -1,5 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
+  <button onclick="abrirModoFlotante()">Modo Ventana Pequeña</button>
+
+<script>
+  function abrirModoFlotante() {
+    // Abre la app en una mini ventana de 320x450 px
+    window.open(
+      window.location.href, 
+      'MiniApp', 
+      'width=320,height=450,resizable=yes,scrollbars=no,status=no'
+    );
+  }
+</script>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
