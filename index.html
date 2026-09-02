@@ -33,57 +33,12 @@
       flex-direction: column;
     }
 
-    header {
-      background-color: #1e293b;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 2px solid #38bdf8;
-      flex-shrink: 0;
-    }
-
-    h1 {
-      font-size: 20px;
-      letter-spacing: 0.5px;
-      color: #f8fafc;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .mode-selector {
-      display: flex;
-      background-color: #0f172a;
-      padding: 4px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      gap: 4px;
-    }
-
-    .mode-btn {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      padding: 8px 16px;
-      font-weight: bold;
-      font-size: 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .mode-btn.active {
-      background-color: #38bdf8;
-      color: #0f172a;
-    }
-
     main {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      padding: 20px;
-      gap: 20px;
+      padding: 10px;
+      gap: 10px;
       max-width: 1200px;
       width: 100%;
       margin: 0 auto;
@@ -93,7 +48,7 @@
     /* BARRA DE FASES */
     .phases-bar {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       width: 100%;
       flex-shrink: 0;
     }
@@ -102,13 +57,13 @@
       flex: 1;
       background-color: #1e293b;
       border: 2px solid #334155;
-      border-radius: 12px;
-      padding: 12px 10px;
+      border-radius: 10px;
+      padding: 8px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 6px;
+      gap: 4px;
       opacity: 0.5;
       transition: all 0.3s ease;
       position: relative;
@@ -119,7 +74,7 @@
     .phase-card.active {
       opacity: 1;
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
 
     .phase-card.completed {
@@ -128,18 +83,18 @@
     }
 
     .phase-icon {
-      font-size: 22px;
+      font-size: 18px;
     }
 
     .phase-title {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .phase-time {
-      font-size: 12px;
+      font-size: 11px;
       color: #94a3b8;
       font-weight: 600;
     }
@@ -161,51 +116,109 @@
     .theme-cierre.active { background-color: #581c87; border-color: #c084fc; }
     .theme-cierre .phase-title { color: #c084fc; }
 
-    /* ÁREA DEL TEMPORIZADOR */
+    /* ÁREA DEL TEMPORIZADOR CON SELECCIÓN INTEGRADA */
     .timer-display-container {
       flex-grow: 1;
       background-color: #1e293b;
-      border-radius: 20px;
-      border: 3px solid #334155;
+      border-radius: 16px;
+      border: 2px solid #334155;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       position: relative;
-      padding: 20px;
+      padding: 12px;
       overflow: hidden;
       transition: border-color 0.4s ease, background-color 0.4s ease;
     }
 
+    .top-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      z-index: 2;
+    }
+
+    .mode-selector {
+      display: flex;
+      background-color: #0f172a;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      gap: 3px;
+    }
+
+    .mode-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      padding: 4px 10px;
+      font-weight: bold;
+      font-size: 13px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background-color: #38bdf8;
+      color: #0f172a;
+    }
+
+    .btn-mini-mode {
+      background-color: #334155;
+      color: #38bdf8;
+      font-weight: bold;
+      padding: 5px 8px;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .fullscreen-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .fullscreen-btn:hover { color: #38bdf8; }
+
     .current-phase-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 20px;
-      border-radius: 30px;
-      font-size: 18px;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
       font-weight: bold;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
+      letter-spacing: 0.5px;
       background-color: rgba(15, 23, 42, 0.6);
       border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 4px;
+      text-align: center;
     }
 
     .timer-digits {
-      font-size: clamp(80px, 15vw, 160px);
+      font-size: clamp(60px, 14vw, 150px);
       font-weight: 800;
       font-family: monospace, system-ui;
       letter-spacing: -2px;
       color: #ffffff;
-      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      text-shadow: 0 4px 16px rgba(0,0,0,0.5);
       line-height: 1;
+      margin: auto 0;
     }
 
     .overall-progress-bar {
       position: absolute;
       bottom: 0;
       left: 0;
-      height: 10px;
+      height: 8px;
       background-color: #38bdf8;
       width: 0%;
       transition: width 0.3s linear;
@@ -216,20 +229,20 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 16px;
+      gap: 10px;
       flex-shrink: 0;
     }
 
     .btn {
       border: none;
-      border-radius: 12px;
-      padding: 14px 28px;
-      font-size: 18px;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.2s ease;
       color: white;
     }
@@ -244,9 +257,9 @@
 
     .btn-main {
       background-color: #22c55e;
-      min-width: 160px;
+      min-width: 120px;
       justify-content: center;
-      font-size: 20px;
+      font-size: 16px;
     }
     .btn-main:hover { background-color: #16a34a; }
     .btn-main.paused { background-color: #eab308; }
@@ -255,105 +268,66 @@
     .btn-secondary {
       background-color: #334155;
       color: #f8fafc;
+      padding: 10px 14px;
     }
     .btn-secondary:hover { background-color: #475569; }
-
-    .btn-mini-mode {
-      background-color: #38bdf8;
-      color: #0f172a;
-      font-weight: bold;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
 
     .sound-toggle {
       background-color: #1e293b;
       border: 1px solid #334155;
       color: #38bdf8;
-      padding: 10px;
-      border-radius: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 16px;
     }
 
-    .fullscreen-btn {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 6px;
-    }
-    .fullscreen-btn:hover { color: #38bdf8; }
-
-    /* REGIONAL CSS PARA MODO FLOTANTE / MINI VENTANA */
-    @media (max-width: 450px) {
+    /* VISTA MINI / VENTANA PEQUEÑA */
+    @media (max-width: 400px) {
       main {
-        padding: 10px;
-        gap: 10px;
-      }
-      h1 span {
-        display: none; /* Oculta texto largo del título en mini */
+        padding: 6px;
+        gap: 6px;
       }
       .phases-bar {
-        display: none; /* Oculta la barra superior de fases para ahorrar espacio */
+        display: none;
+      }
+      .timer-display-container {
+        padding: 8px;
       }
       .current-phase-badge {
-        font-size: 14px;
-        padding: 4px 10px;
+        font-size: 12px;
+        padding: 4px 8px;
       }
       .timer-digits {
-        font-size: 65px;
+        font-size: 56px;
       }
       .controls {
-        gap: 6px;
-        flex-wrap: wrap;
+        gap: 4px;
       }
       .btn {
-        padding: 8px 12px;
-        font-size: 14px;
+        padding: 8px 10px;
+        font-size: 13px;
       }
       .btn-main {
-        min-width: 100px;
+        min-width: 90px;
       }
       #btn-flotante {
-        display: none; /* Oculta el botón dentro de la ventana emergente */
+        display: none;
       }
     }
 
     @media (max-width: 768px) {
       .phases-bar {
         overflow-x: auto;
-        padding-bottom: 5px;
+        padding-bottom: 3px;
       }
       .phase-card {
-        min-width: 110px;
-      }
-      header {
-        flex-direction: column;
-        gap: 10px;
+        min-width: 95px;
       }
     }
   </style>
 </head>
 <body>
-
-  <header>
-    <h1>⏱️ <span>Temporizador Pedagógico</span></h1>
-    
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <!-- BOTÓN MODO FLOTANTE -->
-      <button class="btn-mini-mode" id="btn-flotante" onclick="abrirModoMini()" title="Abrir en ventana pequeña">📌 Modo Mini</button>
-
-      <div class="mode-selector">
-        <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1H</button>
-        <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2H</button>
-      </div>
-      <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
-    </div>
-  </header>
 
   <main>
     <!-- BARRA DINÁMICA DE FASES DE LA CLASE -->
@@ -361,6 +335,16 @@
 
     <!-- PANTALLA PRINCIPAL DEL TEMPORIZADOR -->
     <div class="timer-display-container" id="timer-box">
+      <!-- SELECTOR DE MODO INTEGRADO -->
+      <div class="top-controls">
+        <div class="mode-selector">
+          <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1H</button>
+          <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2H</button>
+        </div>
+        <button class="btn-mini-mode" id="btn-flotante" onclick="abrirModoMini()" title="Abrir en ventana pequeña">📌 Mini</button>
+        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
+      </div>
+
       <div class="current-phase-badge" id="phase-badge">
         <span id="badge-icon">🧠</span>
         <span id="badge-text">Activación / Cálculo Mental</span>
@@ -391,8 +375,8 @@
     function abrirModoMini() {
       if (window.name === 'MiniAppWindow') return;
 
-      const ancho = 350;
-      const alto = 480;
+      const ancho = 320;
+      const alto = 420;
       const izquierda = window.screen.width - ancho - 20;
       const arriba = 20;
 
