@@ -104,17 +104,17 @@
 </head>
 <body>
 
-  <main id="app-main">
+  <main>
     <div class="phases-bar" id="phases-bar"></div>
 
     <div class="timer-display-container" id="timer-box">
       <div class="top-controls">
         <div class="mode-selector">
-          <button class="mode-btn active" id="btn-1h" id-action="mode-1">1H</button>
-          <button class="mode-btn" id="btn-2h" id-action="mode-2">2H</button>
+          <button class="mode-btn active" id="btn-1h" onclick="selectMode(1)">1H</button>
+          <button class="mode-btn" id="btn-2h" onclick="selectMode(2)">2H</button>
         </div>
-        <button class="btn-pip-mode" id-action="toggle-pip" title="Mantener sobre las demás aplicaciones">📌 Modo Flotante Real</button>
-        <button class="fullscreen-btn" id-action="fullscreen" title="Pantalla Completa">⛶</button>
+        <button class="btn-pip-mode" onclick="openMiniWindow()" title="Abrir ventana flotante independiente">🗔 Abrir Ventana Mini</button>
+        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">⛶</button>
       </div>
 
       <div class="current-phase-badge" id="phase-badge">
@@ -128,13 +128,13 @@
     </div>
 
     <div class="controls">
-      <button class="btn btn-secondary" id-action="prev-phase" title="Fase Anterior">⏮️</button>
-      <button class="btn btn-main" id="btn-start" id-action="toggle-timer">
+      <button class="btn btn-secondary" onclick="prevPhase()" title="Fase Anterior">⏮️</button>
+      <button class="btn btn-main" id="btn-start" onclick="toggleTimer()">
         <span>▶️</span> <span id="start-text">Iniciar</span>
       </button>
-      <button class="btn btn-secondary" id-action="reset-timer" title="Reiniciar Fase">🔄</button>
-      <button class="btn btn-secondary" id-action="next-phase" title="Siguiente Fase">⏭️</button>
-      <button class="sound-toggle" id="sound-btn" id-action="toggle-sound" title="Activar/Desactivar Sonido">🔔</button>
+      <button class="btn btn-secondary" onclick="resetTimer()" title="Reiniciar Fase">🔄</button>
+      <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente Fase">⏭️</button>
+      <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Activar/Desactivar Sonido">🔔</button>
     </div>
   </main>
 
@@ -160,78 +160,68 @@
     let timerInterval = null;
     let isRunning = false;
     let soundEnabled = true;
-    let pipWindow = null;
+    let popupWin = null;
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function getActiveDocument() {
-      return pipWindow ? pipWindow.document : document;
-    }
+    function openMiniWindow() {
+      const width = 360;
+      const height = 280;
+      const left = window.screen.width - width - 20;
+      const top = 50;
 
-    function attachGlobalEvents(doc) {
-      doc.addEventListener('click', (e) => {
-        const actionBtn = e.target.closest('[id-action]');
-        if (!actionBtn) return;
+      popupWin = window.open("", "TimerMiniWindow", `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`);
 
-        const action = actionBtn.getAttribute('id-action');
-        if (action === 'mode-1') selectMode(1);
-        else if (action === 'mode-2') selectMode(2);
-        else if (action === 'toggle-pip') toggleDocPiP();
-        else if (action === 'fullscreen') toggleFullscreen();
-        else if (action === 'prev-phase') prevPhase();
-        else if (action === 'toggle-timer') toggleTimer();
-        else if (action === 'reset-timer') resetTimer();
-        else if (action === 'next-phase') nextPhase();
-        else if (action === 'toggle-sound') toggleSound();
-      });
-    }
-
-    async function toggleDocPiP() {
-      if (!('documentPictureInPicture' in window)) {
-        alert("Tu navegador no soporta esta función flotante. Usa Chrome o Edge actualizados.");
+      if (!popupWin) {
+        alert("El navegador bloqueó la ventana emergente. Por favor, permite las ventanas emergentes para esta página.");
         return;
       }
 
-      if (pipWindow) {
-        pipWindow.close();
-        return;
-      }
+      const styles = Array.from(document.querySelectorAll('style')).map(s => s.outerHTML).join('');
 
-      try {
-        pipWindow = await window.documentPictureInPicture.requestWindow({
-          width: 320,
-          height: 220,
-        });
-
-        [...document.styleSheets].forEach((styleSheet) => {
-          try {
-            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
-            const style = document.createElement('style');
-            style.textContent = cssRules;
-            pipWindow.document.head.appendChild(style);
-          } catch (e) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.type = styleSheet.type;
-            link.href = styleSheet.href;
-            pipWindow.document.head.appendChild(link);
-          }
-        });
-
-        const mainElement = document.getElementById('app-main');
-        pipWindow.document.body.appendChild(mainElement);
-        attachGlobalEvents(pipWindow.document);
-
-        pipWindow.addEventListener('unload', () => {
-          document.body.appendChild(mainElement);
-          pipWindow = null;
-          updateDisplay();
-        });
-
-        updateDisplay();
-      } catch (err) {
-        console.error("Error en ventana flotante:", err);
-      }
+      popupWin.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <title>[${currentMode}H] Temporizador Mini</title>
+          ${styles}
+          <style>
+            body { padding: 8px; justify-content: center; }
+            .phases-bar, .top-controls, .btn-secondary { display: none !important; }
+            main { padding: 0; gap: 6px; }
+            .timer-display-container { padding: 8px; justify-content: center; }
+            .current-phase-badge { font-size: 12px; padding: 4px 10px; margin-top: 0; }
+            .timer-digits { font-size: clamp(40px, 15vh, 80px); margin: 6px 0; }
+            .controls { gap: 6px; }
+            .btn-main { min-width: 90px; padding: 8px 14px; font-size: 14px; }
+            .sound-toggle { padding: 6px 10px; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <main>
+            <div class="timer-display-container" id="m-timer-box">
+              <div class="current-phase-badge">
+                <span class="mode-indicator" id="m-mode-tag">${currentMode}H</span>
+                <span id="m-badge-icon">🧠</span>
+                <span id="m-badge-text">Activación</span>
+              </div>
+              <div class="timer-digits" id="m-timer-digits">00:00</div>
+              <div class="overall-progress-bar" id="m-overall-progress"></div>
+            </div>
+            <div class="controls">
+              <button class="btn btn-main" id="m-btn-start" onclick="window.opener.toggleTimer()">
+                <span id="m-start-text">Iniciar</span>
+              </button>
+              <button class="btn btn-secondary" onclick="window.opener.resetTimer()" title="Reiniciar">🔄</button>
+              <button class="sound-toggle" id="m-sound-btn" onclick="window.opener.toggleSound()">🔔</button>
+            </div>
+          </main>
+        </body>
+        </html>
+      `);
+      popupWin.document.close();
+      updateDisplay();
     }
 
     function playBeep(freq = 587.33, duration = 0.3, type = 'sine') {
@@ -258,7 +248,6 @@
     }
 
     function init() {
-      attachGlobalEvents(document);
       renderPhasesBar();
       updateDisplay();
     }
@@ -266,11 +255,8 @@
     function selectMode(mode) {
       if (isRunning) toggleTimer();
       currentMode = mode;
-      const activeDoc = getActiveDocument();
-      const btn1 = activeDoc.getElementById('btn-1h');
-      const btn2 = activeDoc.getElementById('btn-2h');
-      if (btn1) btn1.classList.toggle('active', mode === 1);
-      if (btn2) btn2.classList.toggle('active', mode === 2);
+      document.getElementById('btn-1h').classList.toggle('active', mode === 1);
+      document.getElementById('btn-2h').classList.toggle('active', mode === 2);
       currentPhaseIndex = 0;
       timeRemaining = MODES[currentMode][0].timeSec;
       renderPhasesBar();
@@ -278,9 +264,7 @@
     }
 
     function renderPhasesBar() {
-      const activeDoc = getActiveDocument();
-      const phasesBar = activeDoc.getElementById('phases-bar');
-      if (!phasesBar) return;
+      const phasesBar = document.getElementById('phases-bar');
       phasesBar.innerHTML = '';
       const phases = MODES[currentMode];
 
@@ -301,56 +285,61 @@
     }
 
     function updateDisplay() {
-      const activeDoc = getActiveDocument();
       const phase = MODES[currentMode][currentPhaseIndex];
       const mins = Math.floor(timeRemaining / 60);
       const secs = timeRemaining % 60;
       const formattedTime = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
 
-      const digitsEl = activeDoc.getElementById('timer-digits');
-      if (digitsEl) digitsEl.innerText = formattedTime;
-
+      document.getElementById('timer-digits').innerText = formattedTime;
       document.title = `[${currentMode}H] ${formattedTime} - ${phase.name}`;
-      if (pipWindow) pipWindow.document.title = `[${currentMode}H] ${formattedTime}`;
 
-      const modeTag = activeDoc.getElementById('mode-tag');
-      const badgeIcon = activeDoc.getElementById('badge-icon');
-      const badgeText = activeDoc.getElementById('badge-text');
-      if (modeTag) modeTag.innerText = `${currentMode}H`;
-      if (badgeIcon) badgeIcon.innerText = phase.icon;
-      if (badgeText) badgeText.innerText = phase.name;
+      document.getElementById('mode-tag').innerText = `${currentMode}H`;
+      document.getElementById('badge-icon').innerText = phase.icon;
+      document.getElementById('badge-text').innerText = phase.name;
 
-      const timerBox = activeDoc.getElementById('timer-box');
-      if (timerBox) timerBox.className = `timer-display-container ${phase.theme}`;
+      const timerBox = document.getElementById('timer-box');
+      timerBox.className = `timer-display-container ${phase.theme}`;
 
       const progressPercent = ((phase.timeSec - timeRemaining) / phase.timeSec) * 100;
-      const progressEl = activeDoc.getElementById('overall-progress');
-      if (progressEl) progressEl.style.width = `${progressPercent}%`;
+      document.getElementById('overall-progress').style.width = `${progressPercent}%`;
 
       MODES[currentMode].forEach((_, idx) => {
-        const card = activeDoc.getElementById(`phase-card-${idx}`);
+        const card = document.getElementById(`phase-card-${idx}`);
         if (card) {
           card.classList.toggle('active', idx === currentPhaseIndex);
           card.classList.toggle('completed', idx < currentPhaseIndex);
         }
       });
+
+      if (popupWin && !popupWin.closed) {
+        try {
+          popupWin.document.title = `[${currentMode}H] ${formattedTime}`;
+          popupWin.document.getElementById('m-timer-digits').innerText = formattedTime;
+          popupWin.document.getElementById('m-mode-tag').innerText = `${currentMode}H`;
+          popupWin.document.getElementById('m-badge-icon').innerText = phase.icon;
+          popupWin.document.getElementById('m-badge-text').innerText = phase.name;
+          popupWin.document.getElementById('m-timer-box').className = `timer-display-container ${phase.theme}`;
+          popupWin.document.getElementById('m-overall-progress').style.width = `${progressPercent}%`;
+        } catch (e) {}
+      }
     }
 
     function toggleTimer() {
-      const activeDoc = getActiveDocument();
-      const startText = activeDoc.getElementById('start-text');
-      const btnStart = activeDoc.getElementById('btn-start');
+      const startText = document.getElementById('start-text');
+      const btnStart = document.getElementById('btn-start');
 
       if (isRunning) {
         clearInterval(timerInterval);
         isRunning = false;
-        if (startText) startText.innerText = 'Reanudar';
-        if (btnStart) btnStart.classList.add('paused');
+        startText.innerText = 'Reanudar';
+        btnStart.classList.add('paused');
+        updatePopupBtn('Reanudar', true);
       } else {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         isRunning = true;
-        if (startText) startText.innerText = 'Pausar';
-        if (btnStart) btnStart.classList.remove('paused');
+        startText.innerText = 'Pausar';
+        btnStart.classList.remove('paused');
+        updatePopupBtn('Pausar', false);
 
         timerInterval = setInterval(() => {
           if (timeRemaining > 0) {
@@ -368,69 +357,76 @@
             } else {
               clearInterval(timerInterval);
               isRunning = false;
-              if (startText) startText.innerText = '¡Finalizado!';
+              startText.innerText = '¡Finalizado!';
+              updatePopupBtn('¡Finalizado!', false);
             }
           }
         }, 1000);
       }
     }
 
+    function updatePopupBtn(text, isPaused) {
+      if (popupWin && !popupWin.closed) {
+        try {
+          const btn = popupWin.document.getElementById('m-btn-start');
+          const txt = popupWin.document.getElementById('m-start-text');
+          txt.innerText = text;
+          if (isPaused) btn.classList.add('paused');
+          else btn.classList.remove('paused');
+        } catch(e) {}
+      }
+    }
+
     function resetTimer() {
-      const activeDoc = getActiveDocument();
       if (isRunning) toggleTimer();
       timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
-      const startText = activeDoc.getElementById('start-text');
-      const btnStart = activeDoc.getElementById('btn-start');
-      if (startText) startText.innerText = 'Iniciar';
-      if (btnStart) btnStart.classList.remove('paused');
+      document.getElementById('start-text').innerText = 'Iniciar';
+      document.getElementById('btn-start').classList.remove('paused');
+      updatePopupBtn('Iniciar', false);
       updateDisplay();
     }
 
     function nextPhase() {
-      const activeDoc = getActiveDocument();
       if (currentPhaseIndex < MODES[currentMode].length - 1) {
         if (isRunning) toggleTimer();
         currentPhaseIndex++;
         timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
-        const startText = activeDoc.getElementById('start-text');
-        const btnStart = activeDoc.getElementById('btn-start');
-        if (startText) startText.innerText = 'Iniciar';
-        if (btnStart) btnStart.classList.remove('paused');
+        document.getElementById('start-text').innerText = 'Iniciar';
+        document.getElementById('btn-start').classList.remove('paused');
+        updatePopupBtn('Iniciar', false);
         updateDisplay();
       }
     }
 
     function prevPhase() {
-      const activeDoc = getActiveDocument();
       if (currentPhaseIndex > 0) {
         if (isRunning) toggleTimer();
         currentPhaseIndex--;
         timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
-        const startText = activeDoc.getElementById('start-text');
-        const btnStart = activeDoc.getElementById('btn-start');
-        if (startText) startText.innerText = 'Iniciar';
-        if (btnStart) btnStart.classList.remove('paused');
+        document.getElementById('start-text').innerText = 'Iniciar';
+        document.getElementById('btn-start').classList.remove('paused');
+        updatePopupBtn('Iniciar', false);
         updateDisplay();
       }
     }
 
     function jumpToPhase(index) {
-      const activeDoc = getActiveDocument();
       if (isRunning) toggleTimer();
       currentPhaseIndex = index;
       timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
-      const startText = activeDoc.getElementById('start-text');
-      const btnStart = activeDoc.getElementById('btn-start');
-      if (startText) startText.innerText = 'Iniciar';
-      if (btnStart) btnStart.classList.remove('paused');
+      document.getElementById('start-text').innerText = 'Iniciar';
+      document.getElementById('btn-start').classList.remove('paused');
+      updatePopupBtn('Iniciar', false);
       updateDisplay();
     }
 
     function toggleSound() {
       soundEnabled = !soundEnabled;
-      const activeDoc = getActiveDocument();
-      const soundBtn = activeDoc.getElementById('sound-btn');
-      if (soundBtn) soundBtn.innerText = soundEnabled ? '🔔' : '🔕';
+      const icon = soundEnabled ? '🔔' : '🔕';
+      document.getElementById('sound-btn').innerText = icon;
+      if (popupWin && !popupWin.closed) {
+        try { popupWin.document.getElementById('m-sound-btn').innerText = icon; } catch(e){}
+      }
     }
 
     function toggleFullscreen() {
