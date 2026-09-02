@@ -18,7 +18,40 @@
       gap: 10px; max-width: 1200px; width: 100%; margin: 0 auto; justify-content: space-between;
     }
 
-    /* RECTÁNGULOS SUPERIORES (FASES) */
+    /* CONTENEDOR PRINCIPAL DEL TEMPORIZADOR */
+    .timer-display-container {
+      flex-grow: 1; background-color: #1e293b; border-radius: 16px; border: 2px solid #334155;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      position: relative; padding: 12px; overflow: hidden; transition: border-color 0.4s ease;
+    }
+    .top-controls { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; z-index: 2; }
+    .mode-selector { display: flex; background-color: #0f172a; padding: 3px; border-radius: 8px; border: 1px solid #334155; gap: 3px; }
+    .mode-btn { background: none; border: none; color: #94a3b8; padding: 4px 10px; font-weight: bold; font-size: 13px; border-radius: 5px; cursor: pointer; }
+    .mode-btn.active { background-color: #38bdf8; color: #0f172a; }
+    .btn-pip-mode { background-color: #38bdf8; color: #0f172a; font-weight: bold; padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .fullscreen-btn { background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; padding: 4px; }
+
+    .current-phase-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px;
+      font-size: 14px; font-weight: bold; background-color: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 4px; white-space: nowrap;
+    }
+    .mode-indicator { background-color: #38bdf8; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 800; }
+    .timer-digits {
+      font-size: clamp(38px, 13vw, 140px); font-weight: 800; font-family: monospace, system-ui;
+      letter-spacing: -2px; color: #ffffff; margin: auto 0; line-height: 1;
+    }
+    .overall-progress-bar { position: absolute; bottom: 0; left: 0; height: 8px; background-color: #38bdf8; width: 0%; transition: width 0.3s linear; }
+
+    /* CONTROLES DEL MEDIO */
+    .controls { display: flex; justify-content: center; align-items: center; gap: 10px; flex-shrink: 0; }
+    .btn { border: none; border-radius: 10px; padding: 10px 18px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; color: white; }
+    .btn-main { background-color: #22c55e; min-width: 120px; justify-content: center; }
+    .btn-main.paused { background-color: #eab308; }
+    .btn-secondary { background-color: #334155; color: #f8fafc; padding: 10px 14px; }
+    .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+
+    /* RECTÁNGULOS ABAJO (FASES) */
     .phases-bar { display: flex; gap: 8px; width: 100%; flex-shrink: 0; }
     .phase-card {
       flex: 1; background-color: #1e293b; border: 2px solid #334155; border-radius: 10px;
@@ -45,40 +78,7 @@
     .theme-cierre.active { background-color: #581c87; border-color: #c084fc; }
     .theme-cierre .phase-title { color: #c084fc; }
 
-    /* CONTENEDOR PRINCIPAL */
-    .timer-display-container {
-      flex-grow: 1; background-color: #1e293b; border-radius: 16px; border: 2px solid #334155;
-      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      position: relative; padding: 12px; overflow: hidden; transition: border-color 0.4s ease;
-    }
-    .top-controls { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; z-index: 2; }
-    .mode-selector { display: flex; background-color: #0f172a; padding: 3px; border-radius: 8px; border: 1px solid #334155; gap: 3px; }
-    .mode-btn { background: none; border: none; color: #94a3b8; padding: 4px 10px; font-weight: bold; font-size: 13px; border-radius: 5px; cursor: pointer; }
-    .mode-btn.active { background-color: #38bdf8; color: #0f172a; }
-    .btn-pip-mode { background-color: #38bdf8; color: #0f172a; font-weight: bold; padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
-    .fullscreen-btn { background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; padding: 4px; }
-
-    .current-phase-badge {
-      display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px;
-      font-size: 14px; font-weight: bold; background-color: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 4px; white-space: nowrap;
-    }
-    .mode-indicator { background-color: #38bdf8; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 800; }
-    .timer-digits {
-      font-size: clamp(38px, 13vw, 140px); font-weight: 800; font-family: monospace, system-ui;
-      letter-spacing: -2px; color: #ffffff; margin: auto 0; line-height: 1;
-    }
-    .overall-progress-bar { position: absolute; bottom: 0; left: 0; height: 8px; background-color: #38bdf8; width: 0%; transition: width 0.3s linear; }
-
-    /* CONTROLES INFERIORES */
-    .controls { display: flex; justify-content: center; align-items: center; gap: 10px; flex-shrink: 0; }
-    .btn { border: none; border-radius: 10px; padding: 10px 18px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; color: white; }
-    .btn-main { background-color: #22c55e; min-width: 120px; justify-content: center; }
-    .btn-main.paused { background-color: #eab308; }
-    .btn-secondary { background-color: #334155; color: #f8fafc; padding: 10px 14px; }
-    .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
-
-    /* OCULTAR RECTÁNGULOS AL REDIMENSIONAR */
+    /* REGLAS PARA OCULTAR EN PANTALLAS PEQUEÑAS O RECORTE DE VENTANA */
     @media (max-width: 900px), (max-height: 650px) {
       .phases-bar { display: none !important; }
     }
@@ -100,8 +100,7 @@
 <body>
 
   <main>
-    <div class="phases-bar" id="phases-bar"></div>
-
+    <!-- 1. TEMPORIZADOR PRINCIPAL -->
     <div class="timer-display-container" id="timer-box">
       <div class="top-controls">
         <div class="mode-selector">
@@ -122,6 +121,7 @@
       <div class="overall-progress-bar" id="overall-progress"></div>
     </div>
 
+    <!-- 2. CONTROLES -->
     <div class="controls">
       <button class="btn btn-secondary" onclick="prevPhase()" title="Anterior">⏮️</button>
       <button class="btn btn-main" id="btn-start" onclick="toggleTimer()">
@@ -131,6 +131,9 @@
       <button class="btn btn-secondary" onclick="nextPhase()" title="Siguiente">⏭️</button>
       <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Sonido">🔔</button>
     </div>
+
+    <!-- 3. RECTÁNGULOS INFERIORES (FASES DE LA CLASE) -->
+    <div class="phases-bar" id="phases-bar"></div>
   </main>
 
   <script>
@@ -160,7 +163,7 @@
     let audioCtx = null;
     let timerWorker = null;
 
-    // WEB WORKER EN SEGUNDO PLANO (INMUNIDAD AL MINIMIZAR LA VENTANA)
+    // Web Worker para evitar pausas al minimizar
     const workerCode = `
       let interval = null;
       self.onmessage = function(e) {
