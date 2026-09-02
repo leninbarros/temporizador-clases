@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Temporizador Pedagógico</title>
-  
+  <title>Temporizador Pedagógico - Pomodoro de Aula</title>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -18,7 +18,7 @@
       gap: 10px; max-width: 1200px; width: 100%; margin: 0 auto; justify-content: space-between;
     }
 
-    /* BARRA SUPERIOR DE FASES */
+    /* RECTÁNGULOS SUPERIORES (FASES) */
     .phases-bar { display: flex; gap: 8px; width: 100%; flex-shrink: 0; }
     .phase-card {
       flex: 1; background-color: #1e293b; border: 2px solid #334155; border-radius: 10px;
@@ -31,7 +31,7 @@
     .phase-title { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
     .phase-time { font-size: 11px; color: #94a3b8; font-weight: 600; }
 
-    /* TEMAS DE FASE */
+    /* TEMAS DE COLOR */
     .theme-activacion { border-color: #22c55e; }
     .theme-activacion.active { background-color: #064e3b; border-color: #4ade80; }
     .theme-activacion .phase-title { color: #4ade80; }
@@ -45,7 +45,7 @@
     .theme-cierre.active { background-color: #581c87; border-color: #c084fc; }
     .theme-cierre .phase-title { color: #c084fc; }
 
-    /* CONTENEDOR CENTRAL DE TIMER */
+    /* CONTENEDOR PRINCIPAL DEL TEMPORIZADOR */
     .timer-display-container {
       flex-grow: 1; background-color: #1e293b; border-radius: 16px; border: 2px solid #334155;
       display: flex; flex-direction: column; align-items: center; justify-content: space-between;
@@ -79,16 +79,18 @@
     .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
 
     /* ========================================================= */
-    /* ADAPTACIÓN AUTOMÁTICA AL ACHICAR LA VENTANA (MODO MINI)   */
+    /* OCULTAR RECTÁNGULOS AL ACHICAR ANCHO O ALTO DE VENTANA    */
     /* ========================================================= */
+    @media (max-width: 700px), (max-height: 500px) {
+      .phases-bar { display: none !important; } /* Oculta únicamente los rectángulos superiores */
+    }
+
     @media (max-width: 450px), (max-height: 380px) {
       main { padding: 4px; gap: 4px; }
-      .phases-bar { display: none !important; } /* Oculta barra superior */
       .top-controls { margin-bottom: 2px; }
-      .btn-pip-mode { display: none !important; } /* Oculta botón PIP si la ventana ya es mini */
       .timer-display-container { padding: 6px 4px; border-radius: 10px; }
-      .current-phase-badge { font-size: 11px; padding: 3px 8px; margin-top: 0; }
-      .timer-digits { font-size: clamp(32px, 20vw, 65px); }
+      .current-phase-badge { font-size: 12px; padding: 3px 8px; margin-top: 0; }
+      .timer-digits { font-size: clamp(32px, 22vw, 75px); }
       .overall-progress-bar { height: 5px; }
       .controls { gap: 6px; }
       .btn { padding: 6px 10px; font-size: 13px; border-radius: 6px; }
@@ -108,7 +110,7 @@
           <button class="mode-btn" id="btn-1h" onclick="selectMode(1)">1H</button>
           <button class="mode-btn active" id="btn-2h" onclick="selectMode(2)">2H</button>
         </div>
-        <button class="btn-pip-mode" onclick="openMiniWindow()">📌 Modo Flotante Real</button>
+        <button class="btn-pip-mode" onclick="openMiniWindow()">🗔 Abrir Ventana Mini</button>
         <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶</button>
       </div>
 
@@ -221,3 +223,136 @@
     }
 
     function updateDisplay() {
+      const phase = MODES[currentMode][currentPhaseIndex];
+      const mins = Math.floor(timeRemaining / 60);
+      const secs = timeRemaining % 60;
+      const formattedTime = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+      document.getElementById('timer-digits').innerText = formattedTime;
+      document.title = `[${currentMode}H] ${formattedTime} - ${phase.name}`;
+      document.getElementById('mode-tag').innerText = `${currentMode}H`;
+      document.getElementById('badge-icon').innerText = phase.icon;
+      document.getElementById('badge-text').innerText = phase.name;
+
+      const timerBox = document.getElementById('timer-box');
+      timerBox.className = `timer-display-container ${phase.theme}`;
+
+      const progressPercent = ((durationSec - timeRemaining) / durationSec) * 100;
+      document.getElementById('overall-progress').style.width = `${progressPercent}%`;
+
+      MODES[currentMode].forEach((_, idx) => {
+        const card = document.getElementById(`phase-card-${idx}`);
+        if (card) {
+          card.classList.toggle('active', idx === currentPhaseIndex);
+          card.classList.toggle('completed', idx < currentPhaseIndex);
+        }
+      });
+    }
+
+    function tick() {
+      if (!isRunning) return;
+      const now = Date.now();
+      const diffMs = endTime - now;
+      const newTimeRemaining = Math.max(0, Math.ceil(diffMs / 1000));
+
+      if (newTimeRemaining !== timeRemaining) {
+        timeRemaining = newTimeRemaining;
+        updateDisplay();
+        if (timeRemaining <= 3 && timeRemaining > 0) playBeep(440, 0.15);
+      }
+
+      if (timeRemaining <= 0) {
+        isRunning = false;
+        playBeep(880, 0.5);
+        if (currentPhaseIndex < MODES[currentMode].length - 1) {
+          currentPhaseIndex++;
+          durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+          timeRemaining = durationSec;
+          startTimer();
+        } else {
+          document.getElementById('start-text').innerText = '¡Finalizado!';
+        }
+      } else {
+        animFrame = requestAnimationFrame(tick);
+      }
+    }
+
+    function toggleTimer() {
+      if (isRunning) pauseTimer();
+      else startTimer();
+    }
+
+    function startTimer() {
+      getAudioContext();
+      isRunning = true;
+      endTime = Date.now() + (timeRemaining * 1000);
+      document.getElementById('start-text').innerText = 'Pausar';
+      document.getElementById('btn-start').classList.add('paused');
+      cancelAnimationFrame(animFrame);
+      animFrame = requestAnimationFrame(tick);
+      updateDisplay();
+    }
+
+    function pauseTimer() {
+      isRunning = false;
+      cancelAnimationFrame(animFrame);
+      document.getElementById('start-text').innerText = 'Reanudar';
+      document.getElementById('btn-start').classList.remove('paused');
+      updateDisplay();
+    }
+
+    function resetTimer() {
+      if (isRunning) pauseTimer();
+      durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+      timeRemaining = durationSec;
+      document.getElementById('start-text').innerText = 'Iniciar';
+      document.getElementById('btn-start').classList.remove('paused');
+      updateDisplay();
+    }
+
+    function nextPhase() {
+      if (currentPhaseIndex < MODES[currentMode].length - 1) {
+        if (isRunning) pauseTimer();
+        currentPhaseIndex++;
+        durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+        timeRemaining = durationSec;
+        updateDisplay();
+      }
+    }
+
+    function prevPhase() {
+      if (currentPhaseIndex > 0) {
+        if (isRunning) pauseTimer();
+        currentPhaseIndex--;
+        durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+        timeRemaining = durationSec;
+        updateDisplay();
+      }
+    }
+
+    function jumpToPhase(index) {
+      if (isRunning) pauseTimer();
+      currentPhaseIndex = index;
+      durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+      timeRemaining = durationSec;
+      updateDisplay();
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-btn').innerText = soundEnabled ? '🔔' : '🔕';
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else if (document.exitFullscreen) document.exitFullscreen();
+    }
+
+    function openMiniWindow() {
+      window.open(window.location.href, "TimerMini", "width=320,height=220,resizable=yes");
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
