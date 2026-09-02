@@ -69,6 +69,9 @@
       font-size: 14px; font-weight: bold; letter-spacing: 0.5px; background-color: rgba(15, 23, 42, 0.6);
       border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 4px; text-align: center;
     }
+    .mode-indicator {
+      background-color: #38bdf8; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 800;
+    }
     .timer-digits {
       font-size: clamp(60px, 14vw, 150px); font-weight: 800; font-family: monospace, system-ui;
       letter-spacing: -2px; color: #ffffff; text-shadow: 0 4px 16px rgba(0,0,0,0.5); line-height: 1; margin: auto 0;
@@ -117,6 +120,7 @@
       </div>
 
       <div class="current-phase-badge" id="phase-badge">
+        <span class="mode-indicator" id="mode-tag">1H</span>
         <span id="badge-icon">🧠</span>
         <span id="badge-text">Activación / Cálculo Mental</span>
       </div>
@@ -175,7 +179,7 @@
       ctx.fillStyle = '#38bdf8';
       ctx.font = 'bold 14px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(phaseName.substring(0, 25), canvas.width / 2, 35);
+      ctx.fillText(`[${currentMode}H] ${phaseName.substring(0, 20)}`, canvas.width / 2, 35);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 52px monospace';
@@ -193,7 +197,7 @@
           await video.requestPictureInPicture();
         }
       } catch (err) {
-        alert("El modo Picture-in-Picture no está soportado en este navegador o requiere interacción previa.");
+        alert("El modo Picture-in-Picture no está soportado en este navegador.");
       }
     }
 
@@ -263,8 +267,9 @@
       const secs = timeRemaining % 60;
       const formattedTime = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
       document.getElementById('timer-digits').innerText = formattedTime;
-      document.title = `${formattedTime} - ${phase.name}`;
+      document.title = `[${currentMode}H] ${formattedTime} - ${phase.name}`;
 
+      document.getElementById('mode-tag').innerText = `${currentMode}H`;
       document.getElementById('badge-icon').innerText = phase.icon;
       document.getElementById('badge-text').innerText = phase.name;
 
