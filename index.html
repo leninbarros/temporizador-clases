@@ -91,42 +91,50 @@
     .btn-secondary:hover { background-color: #475569; }
     .sound-toggle { background-color: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
 
-    /* ESTILOS PARA EL MODO MINI EN LA MISMA VENTANA */
+    /* ESTILOS ULTRA COMPACTOS (Permiten estrechar la ventana al máximo) */
     body.is-mini main {
-      padding: 4px;
-      gap: 4px;
+      padding: 0 !important;
+      gap: 0 !important;
+      width: 100vw !important;
+      max-width: 100vw !important;
     }
     body.is-mini .phases-bar,
     body.is-mini .top-controls {
       display: none !important;
     }
     body.is-mini .timer-display-container {
-      padding: 4px;
-      justify-content: center;
-      gap: 2px;
+      padding: 2px 0 !important;
+      justify-content: center !important;
+      border-radius: 0 !important;
+      border: none !important;
+      width: 100% !important;
     }
     body.is-mini .current-phase-badge {
-      font-size: clamp(10px, 4.5vh, 13px) !important;
-      padding: 2px 8px !important;
-      margin-top: 0 !important;
+      font-size: clamp(9px, 3.8vh, 12px) !important;
+      padding: 1px 4px !important;
+      margin: 0 !important;
+      border-radius: 6px !important;
+      max-width: 100% !important;
     }
     body.is-mini .timer-digits {
-      font-size: clamp(32px, 32vh, 90px) !important;
+      font-size: clamp(28px, 45vw, 85px) !important;
       margin: 0 !important;
+      padding: 0 !important;
+      letter-spacing: -1px !important;
     }
     body.is-mini .controls {
-      gap: 6px;
-      padding-bottom: 2px;
+      gap: 4px !important;
+      padding: 2px 0 !important;
     }
     body.is-mini .btn-main {
-      min-width: 80px;
-      padding: 6px 12px;
-      font-size: 13px;
+      min-width: 60px !important;
+      padding: 2px 8px !important;
+      font-size: 11px !important;
     }
     body.is-mini .btn-secondary,
     body.is-mini .sound-toggle {
-      padding: 6px 10px;
-      font-size: 13px;
+      padding: 2px 6px !important;
+      font-size: 11px !important;
     }
   </style>
 </head>
@@ -208,7 +216,7 @@
       if (isMiniMode) {
         exitBtn.style.display = 'inline-flex';
         hideBtns.forEach(btn => btn.style.display = 'none');
-        window.resizeTo(360, 220); // Ajusta tamaño si el navegador lo permite
+        window.resizeTo(280, 180);
       } else {
         exitBtn.style.display = 'none';
         hideBtns.forEach(btn => btn.style.display = 'inline-flex');
@@ -418,15 +426,4 @@
 
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
-    }
-
-    window.onload = init;
-  </script>
-</body>
-</html>
+        document
