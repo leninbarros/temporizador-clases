@@ -156,11 +156,16 @@
 
     let currentMode = 1;
     let currentPhaseIndex = 0;
-    let timeRemaining = MODES[1][0].timeSec;
-    let timerInterval = null;
+    let durationSec = MODES[1][0].timeSec;
+    let timeRemaining = durationSec;
+    
     let isRunning = false;
     let soundEnabled = true;
     let popupWin = null;
+    
+    let endTime = null;
+    let animFrame = null;
+    let lastBeepSec = -1;
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -173,7 +178,7 @@
       popupWin = window.open("", "TimerMiniWindow", `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`);
 
       if (!popupWin) {
-        alert("El navegador bloqueó la ventana emergente. Por favor, permite las ventanas emergentes para esta página.");
+        alert("El navegador bloqueó la ventana emergente. Habilita las ventanas emergentes en la barra de dirección.");
         return;
       }
 
@@ -253,12 +258,13 @@
     }
 
     function selectMode(mode) {
-      if (isRunning) toggleTimer();
+      if (isRunning) pauseTimer();
       currentMode = mode;
       document.getElementById('btn-1h').classList.toggle('active', mode === 1);
       document.getElementById('btn-2h').classList.toggle('active', mode === 2);
       currentPhaseIndex = 0;
-      timeRemaining = MODES[currentMode][0].timeSec;
+      durationSec = MODES[currentMode][0].timeSec;
+      timeRemaining = durationSec;
       renderPhasesBar();
       updateDisplay();
     }
@@ -300,7 +306,7 @@
       const timerBox = document.getElementById('timer-box');
       timerBox.className = `timer-display-container ${phase.theme}`;
 
-      const progressPercent = ((phase.timeSec - timeRemaining) / phase.timeSec) * 100;
+      const progressPercent = ((durationSec - timeRemaining) / durationSec) * 100;
       document.getElementById('overall-progress').style.width = `${progressPercent}%`;
 
       MODES[currentMode].forEach((_, idx) => {
@@ -324,45 +330,69 @@
       }
     }
 
-    function toggleTimer() {
-      const startText = document.getElementById('start-text');
-      const btnStart = document.getElementById('btn-start');
+    function tick() {
+      if (!isRunning) return;
 
-      if (isRunning) {
-        clearInterval(timerInterval);
-        isRunning = false;
-        startText.innerText = 'Reanudar';
-        btnStart.classList.add('paused');
-        updatePopupBtn('Reanudar', true);
-      } else {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        isRunning = true;
-        startText.innerText = 'Pausar';
-        btnStart.classList.remove('paused');
-        updatePopupBtn('Pausar', false);
+      const now = Date.now();
+      const diffMs = endTime - now;
+      const newTimeRemaining = Math.max(0, Math.ceil(diffMs / 1000));
 
-        timerInterval = setInterval(() => {
-          if (timeRemaining > 0) {
-            timeRemaining--;
-            updateDisplay();
-            if (timeRemaining <= 3 && timeRemaining > 0) {
-              playBeep(440, 0.15);
-            }
-          } else {
-            playPhaseEndSound();
-            if (currentPhaseIndex < MODES[currentMode].length - 1) {
-              currentPhaseIndex++;
-              timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
-              updateDisplay();
-            } else {
-              clearInterval(timerInterval);
-              isRunning = false;
-              startText.innerText = '¡Finalizado!';
-              updatePopupBtn('¡Finalizado!', false);
-            }
-          }
-        }, 1000);
+      if (newTimeRemaining !== timeRemaining) {
+        timeRemaining = newTimeRemaining;
+        updateDisplay();
+
+        if (timeRemaining <= 3 && timeRemaining > 0 && lastBeepSec !== timeRemaining) {
+          lastBeepSec = timeRemaining;
+          playBeep(440, 0.15);
+        }
       }
+
+      if (timeRemaining <= 0) {
+        isRunning = false;
+        playPhaseEndSound();
+        if (currentPhaseIndex < MODES[currentMode].length - 1) {
+          currentPhaseIndex++;
+          durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+          timeRemaining = durationSec;
+          startTimer();
+        } else {
+          document.getElementById('start-text').innerText = '¡Finalizado!';
+          updatePopupBtn('¡Finalizado!', false);
+        }
+      } else {
+        animFrame = requestAnimationFrame(tick);
+      }
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function startTimer() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      isRunning = true;
+      endTime = Date.now() + (timeRemaining * 1000);
+      lastBeepSec = -1;
+
+      document.getElementById('start-text').innerText = 'Pausar';
+      document.getElementById('btn-start').classList.remove('paused');
+      updatePopupBtn('Pausar', false);
+
+      cancelAnimationFrame(animFrame);
+      animFrame = requestAnimationFrame(tick);
+    }
+
+    function pauseTimer() {
+      isRunning = false;
+      cancelAnimationFrame(animFrame);
+
+      document.getElementById('start-text').innerText = 'Reanudar';
+      document.getElementById('btn-start').classList.add('paused');
+      updatePopupBtn('Reanudar', true);
     }
 
     function updatePopupBtn(text, isPaused) {
@@ -378,8 +408,9 @@
     }
 
     function resetTimer() {
-      if (isRunning) toggleTimer();
-      timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
+      if (isRunning) pauseTimer();
+      durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+      timeRemaining = durationSec;
       document.getElementById('start-text').innerText = 'Iniciar';
       document.getElementById('btn-start').classList.remove('paused');
       updatePopupBtn('Iniciar', false);
@@ -388,9 +419,10 @@
 
     function nextPhase() {
       if (currentPhaseIndex < MODES[currentMode].length - 1) {
-        if (isRunning) toggleTimer();
+        if (isRunning) pauseTimer();
         currentPhaseIndex++;
-        timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
+        durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+        timeRemaining = durationSec;
         document.getElementById('start-text').innerText = 'Iniciar';
         document.getElementById('btn-start').classList.remove('paused');
         updatePopupBtn('Iniciar', false);
@@ -400,9 +432,10 @@
 
     function prevPhase() {
       if (currentPhaseIndex > 0) {
-        if (isRunning) toggleTimer();
+        if (isRunning) pauseTimer();
         currentPhaseIndex--;
-        timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
+        durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+        timeRemaining = durationSec;
         document.getElementById('start-text').innerText = 'Iniciar';
         document.getElementById('btn-start').classList.remove('paused');
         updatePopupBtn('Iniciar', false);
@@ -411,9 +444,10 @@
     }
 
     function jumpToPhase(index) {
-      if (isRunning) toggleTimer();
+      if (isRunning) pauseTimer();
       currentPhaseIndex = index;
-      timeRemaining = MODES[currentMode][currentPhaseIndex].timeSec;
+      durationSec = MODES[currentMode][currentPhaseIndex].timeSec;
+      timeRemaining = durationSec;
       document.getElementById('start-text').innerText = 'Iniciar';
       document.getElementById('btn-start').classList.remove('paused');
       updatePopupBtn('Iniciar', false);
